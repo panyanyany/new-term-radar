@@ -1,0 +1,250 @@
+{
+  "note_x": ["X: {n} accounts, {likes} likes", "X {n} 个账号 ♥{likes}"],
+  "note_hf": ["Hugging Face: new at #{rank}", "HF 新进榜第 {rank} 名"],
+  "note_hf_copies": [", {n} versions", ",{n} 个版本"],
+  "note_breakout": [
+    "GitHub breakout {repo} ★{stars} ({velocity}/day{gain})",
+    "GitHub 爆发 {repo} ★{stars}(均 {velocity}/天{gain})"
+  ],
+  "note_breakout_gain": [", +{delta} in a day", ",一天 +{delta}"],
+  "note_site": [
+    "New site {domain} (registered {created}, ~{etv} visits/mo, {keywords} ranking keywords)",
+    "新站 {domain}(注册 {created},约 {etv} 访问/月,{keywords} 个排名词)"
+  ],
+  "note_surge": ["{label}: {n} places (×{lift})", "{label} {n} 处 (×{lift})"],
+  "kind_x": ["① X", "① X"],
+  "kind_hf": ["① HF", "① HF"],
+  "kind_breakout": ["② breakout", "② 爆发"],
+  "kind_sitemap": ["③ sitemaps", "③ 竞品"],
+  "kind_newsite": ["③ new site", "③ 新站"],
+  "kind_watch": ["watch", "观察词"],
+  "title": ["## New-term radar", "## 新词雷达"],
+  "leads_h": [
+    "### Candidate new terms (names first; terms you already cover are marked)",
+    "### 候选新词(判为专有名词的排前面;已覆盖的会标出)"
+  ],
+  "leads_cols": [
+    "| Term | Signals | Name score | Known | Search variants | Examples |",
+    "| 词 | 信号 | 名字得分 | 已覆盖 | 搜索变体 | 例子 |"
+  ],
+  "none": ["none", "无"],
+  "dash": ["—", "—"],
+  "other_terms": [
+    "Other rising terms (judged common words): ",
+    "其他上升词(判为普通词):"
+  ],
+  "topic_h": ["### Topic: {name}", "### 主题:{name}"],
+  "topic_none": ["Nothing new on this topic today", "今天没有相关的新词"],
+  "topic_lead": [
+    "- Candidate **{term}**: {signals}",
+    "- 候选词 **{term}**:{signals}"
+  ],
+  "topic_repo": [
+    "- Breakout repo [{repo}](https://github.com/{repo}) ★{stars} ({velocity}/day): {desc}",
+    "- 爆发仓库 [{repo}](https://github.com/{repo}) ★{stars}(均 {velocity}/天):{desc}"
+  ],
+  "topic_query": [
+    "- New query `{query}`: {impressions} impressions, landing on {page}",
+    "- GSC 新词 `{query}`:曝光 {impressions},落地页 {page}"
+  ],
+  "recent_h": [
+    "### ① Source leads of the last 24 hours (kept by the frequent job)",
+    "### ① 近 24 小时的源头新词(高频任务记下的)"
+  ],
+  "recent_none": ["None ({why})", "无({why})"],
+  "no_new_names": ["no new names", "没有新名字"],
+  "breakout_h": [
+    "### ② Single-repo breakouts (created in the last {days} days, by stars a day; 🆕 = first day above the bar)",
+    "### ② 单仓库爆发(近 {days} 天新建,按每天涨星排;🆕 = 今天第一次达标)"
+  ],
+  "breakout_cols": [
+    "| Repo | ★ | Per day | Since yesterday | Age (days) | About |",
+    "| 仓库 | ★ | 均/天 | 比昨天 | 天数 | 简介 |"
+  ],
+  "no_breakouts": ["no breakout repos", "没有爆发仓库"],
+  "skipped": ["skipped", "跳过"],
+  "newsite_h": [
+    "### ③ New sites (registered and first indexed in the last {days} days, est. visits/mo >{etv}, ≥{kw} ranking keywords; 🆕 = first seen)",
+    "### ③ 新站(近 {days} 天注册且首次被收录、月访问估值 >{etv}、排名词 ≥{kw};🆕 = 第一次出现)"
+  ],
+  "newsite_cols": [
+    "| Domain | Registered | First indexed | Visits/mo (est.) | Ranking keywords |",
+    "| 域名 | 注册 | 首次收录 | 访问/月(估) | 排名词 |"
+  ],
+  "newsite_none": [
+    "no qualifying new sites this week",
+    "这周没有符合条件的新站"
+  ],
+  "gsc_h": [
+    "### ④ Search Console queries seen for the first time (fresh data, about a day behind)",
+    "### ④ GSC 首次出现的搜索词(新鲜数据,约晚 1 天)"
+  ],
+  "gsc_intro": [
+    "{window}: {total} new queries; those with ≥{min} impressions:",
+    "{window},共 {total} 个新词,曝光 ≥{min} 的:"
+  ],
+  "gsc_cols": [
+    "| Query | Impressions | Clicks | Landing page |",
+    "| 搜索词 | 曝光 | 点击 | 落地页 |"
+  ],
+  "gsc_none": ["no new queries", "没有新词"],
+  "gsc_off": ["not configured", "未配置"],
+  "review_h": [
+    "### ⑤ Review (terms reported {days} days ago: did they rise in Google Trends?)",
+    "### ⑤ 复盘({days} 天前报出的词,在 Google Trends 里起没起来)"
+  ],
+  "review_cols": [
+    "| Term | First reported | Verdict | Days ahead |",
+    "| 词 | 首次报出 | 结论 | 提前天数 |"
+  ],
+  "review_none": ["No term is due today ({why})", "今天没有到期的词({why})"],
+  "review_young": [
+    "the oldest lead is under {days} days old",
+    "最早报出的词还不满 {days} 天"
+  ],
+  "hit_intro": [
+    "Hit rate over the last {days} days ({pending} awaiting review):",
+    "近 {days} 天的命中率(待复盘 {pending} 个):"
+  ],
+  "hit_cols": [
+    "| Signal | Reviewed | Hits | Hit rate | Median days ahead |",
+    "| 信号 | 复盘 | 命中 | 命中率 | 提前天数中位数 |"
+  ],
+  "status_h": ["### Data status", "### 数据状态"],
+  "st_x": ["- ① X: {state}", "- ① X:{state}"],
+  "st_hf": ["- ① HF: {state}", "- ① HF:{state}"],
+  "st_x_ok": [
+    "{answered}/{accounts} accounts, {posts} posts",
+    "{answered}/{accounts} 个账号,{posts} 条帖子"
+  ],
+  "st_x_first": [
+    ", first run: vocabulary built, nothing reported",
+    ",首次运行,只建词表"
+  ],
+  "st_hf_ok": ["{models} trending models", "trending {models} 个模型"],
+  "st_first": [", first run: snapshot built", ",首次运行,只建快照"],
+  "st_breakout": ["- ② breakouts: {state}", "- ② 爆发:{state}"],
+  "st_breakout_ok": ["{n} new repos searched", "搜到 {n} 个新仓库"],
+  "st_breakout_first": [
+    ", first run: no star counts from yesterday",
+    ",首次运行,没有昨天的星数"
+  ],
+  "st_site": ["- ③ {site}: {state}", "- ③ {site}:{state}"],
+  "st_site_ok": ["{urls} URLs, {new} new", "{urls} 个网址,新增 {new}"],
+  "st_site_first": ["first run: snapshot built", "首次运行,只建快照"],
+  "st_sitemaps": ["- ③ sitemaps: {state}", "- ③ 竞品:{state}"],
+  "st_record": ["- saving leads: {state}", "- 记录候选词:{state}"],
+  "st_judge": ["- name judge: {state}", "- 名字判断:{state}"],
+  "cost": [
+    "- Data cost estimate this run: {cost} (excludes Twitter AIO subscription and model tokens; Scrappa at Starter rate before free credits)",
+    "- 本次数据成本估算:{cost}(不含 Twitter AIO 套餐及模型费用;Scrappa 按 Starter 单价且未扣免费额度)"
+  ],
+  "kind_usecase": ["generic term", "通用词"],
+  "note_usecase": [
+    "generic term behind {names}: {volume}/mo",
+    "{names} 背后的通用词,月搜 {volume}"
+  ],
+  "uc_h": [
+    "### Keyword table: the new names and the generic terms behind them",
+    "### 新词表:新名字和它背后的通用词"
+  ],
+  "uc_intro": [
+    "Read today: {names}. {proposed} generic phrases proposed, {relevant} passed the relevance screen, {kept} of those with at least {min} searches a month ({month} data).",
+    "今天读了:{names}。提出 {proposed} 个通用写法,{relevant} 个通过相关性筛选,其中 {kept} 个月搜不低于 {min}({month} 数据)。"
+  ],
+  "uc_bench": [
+    "Searches a day are estimates: a generic term from its own volume moved along its Trends curve; a name against `{bench}`, sized at about {bench_daily} a day from today's terms.",
+    "日搜是估算:通用词用它自己的月搜索量沿 Trends 曲线推到现在;名字对比基准词 `{bench}`(按今天这批词反推,约每天 {bench_daily} 次)。"
+  ],
+  "uc_bench_none": [
+    "Searches a day are estimates from each generic term's own volume. `{bench}` could not be sized today, so names have no estimate.",
+    "日搜是按每个通用词自己的月搜索量估算的。今天没法校准基准词 `{bench}`,所以名字没有估算值。"
+  ],
+  "uc_cols": [
+    "| Keyword | Type | Behind | New? | Est. searches/day | Started rising | Peak vs {bench} | Peak day | Last 7 days vs the 7 before | Now | Decision |",
+    "| 关键词 | 类型 | 来自 | 新词? | 估算日搜 | 开始上涨 | 峰值 vs {bench} | 峰值日 | 近 7 天比前 7 天 | 现在 | 决策 |"
+  ],
+  "uc_type_name": ["name", "名字"],
+  "uc_type_generic": ["generic", "通用词"],
+  "uc_yes": ["yes", "是"],
+  "uc_no": ["no", "否"],
+  "uc_now_rising": ["still rising", "还在涨"],
+  "uc_now_holding": ["holding", "维持"],
+  "uc_now_fading": ["fading", "回落"],
+  "uc_now_flat": ["flat", "没动"],
+  "uc_now_none": ["no reading yet", "还读不出"],
+  "uc_prioritize": ["**prioritize**", "**优先**"],
+  "uc_watch": ["watch", "观察"],
+  "uc_skip": ["skip", "跳过"],
+  "uc_brand_note": [
+    "⚠ = the keyword carries someone's brand or product name: a legal and positioning call that is yours.",
+    "⚠ = 这个词带着别人的品牌或产品名,法务和定位风险需要你自己判断。"
+  ],
+  "uc_rules": [
+    "Decision: prioritize = rose in the last 30 days, still up, and at least {min_daily} estimated searches a day. watch = rose but smaller; too early to read; or did not move but has steady demand of that size. skip = fading, or flat and small. Trends' last two days are unsettled and left out.",
+    "决策规则:优先 = 近 30 天涨过、现在还在高位、估算日搜不低于 {min_daily}。观察 = 涨了但规模小;还太早读不出;或者没动但本身就有这个规模的稳定需求。跳过 = 已回落,或没动且规模小。Trends 最后两天的数据还没结算,不计入。"
+  ],
+  "kind_cosearch": ["searched alongside", "一起被搜"],
+  "note_cosearch": [
+    "searched on Google together with {name}",
+    "在 Google 上和 {name} 一起被搜"
+  ],
+  "uc_searched_note": [
+    "🔎 = from Google Trends' related queries: people searched it together with the name (GoAnyAPI).",
+    "🔎 = 来自 Google Trends 的相关查询:有人把它和这个名字一起搜(GoAnyAPI)。"
+  ],
+  "uc_tails_h": [
+    "Searched with the name itself (its long-tails):",
+    "带着名字一起搜的写法(名字的长尾):"
+  ],
+  "uc_cosearch_h": [
+    "Other names searched alongside (kept as leads):",
+    "一起被搜的其他名字(已记为线索):"
+  ],
+  "uc_cosearch_item": ["{term} (with {name})", "{term}(和 {name} 一起)"],
+  "uc_related_off": [
+    "Related queries are off: set GOANYAPI_API_KEY to add what people searched together with each name.",
+    "相关查询未开启:设置 GOANYAPI_API_KEY 后,会加入大家和每个名字一起搜的词。"
+  ],
+  "uc_degraded": [
+    "**⚠ This table is incomplete today: a data source failed, so it holds less than usual (see the lines under it). No rise shown here does not mean nothing rose.**",
+    "**⚠ 今天这张表不完整:有数据源失败,内容比平时少(原因见表下)。表里没出现上涨,不代表真的没涨。**"
+  ],
+  "uc_posts_err": [
+    "The post search failed; this run used READMEs and related queries only: {why}",
+    "推文搜索失败,这次只用了 README 和相关查询:{why}"
+  ],
+  "uc_related_err": [
+    "Related queries failed for: {names}.",
+    "相关查询失败:{names}。"
+  ],
+  "uc_geo_note": [
+    "({geo}) = the curve was read from 30 days of daily data for that country (GoAnyAPI), settled to yesterday; a rise there is 1.5x the earlier level for three days. The other rows use the worldwide series.",
+    "({geo}) = 走势读自这个国家的 30 天日数据(GoAnyAPI),结算到昨天;在这份数据里,比之前高 50% 且持续三天算上涨。其余行用的是全球数据。"
+  ],
+  "uc_geo_err": [
+    "Country series failed, worldwide data used instead: {names}.",
+    "国家数据获取失败,已退回全球数据:{names}。"
+  ],
+  "uc_said_h": [
+    "What people said (the evidence for each generic term):",
+    "原话(每个通用词的依据):"
+  ],
+  "uc_none": [
+    "Nothing to read today: no new name, and none due for its second reading.",
+    "今天没有要读的名字:没有新名字,也没有到第二次阅读时间的。"
+  ],
+  "uc_no_evidence": [
+    "No posts or README found for: {names}.",
+    "没找到帖子或 README:{names}。"
+  ],
+  "st_usecases": ["- generic terms: {state}", "- 通用词:{state}"],
+  "sources_title": ["## New-term radar · ① sources", "## 新词雷达 · ① 源头"],
+  "sources_cols": [
+    "| Term | Signals | Name score | Known | Examples |",
+    "| 词 | 信号 | 名字得分 | 已覆盖 | 例子 |"
+  ],
+  "posts_h": ["### The posts", "### 推文原文"],
+  "post_link": [" · [post]({url})", " · [原推]({url})"],
+  "sources_quiet": ["① no new names: ", "① 没有新名字:"]
+}

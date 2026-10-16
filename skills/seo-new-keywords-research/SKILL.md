@@ -12,7 +12,7 @@ A name ("SynthID Detector") has a short life as a keyword and belongs to someone
 ## Before you run anything
 
 1. Find the radar: `$NEW_TERM_RADAR_DIR` if set, else `~/new-term-radar`; clone https://github.com/zhuyansen/new-term-radar there if missing. Run every command from that directory.
-2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): every lookup here is paid through it. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
+2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): Google Ads volumes and model calls use it. X search defaults to Twitter AIO (`TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`), with preserved AIsa search selectable using `X_SEARCH_PROVIDER=aisa`; worldwide Trends uses Scrappa local credentials or `SCRAPPA_API_KEY`. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
 3. `GOANYAPI_API_KEY` is optional (a key comes from https://goanyapi.com/r/ga-95708898fb). With it the table also holds what people really searched together with each name, and reads the bigger rows from one country's settled series. Without it, tell the user that a "flat" reading is weaker evidence (see below).
 4. If there is no `config.json`, copy `config.example.json`.
 
@@ -30,7 +30,7 @@ If the user gave names, use them. If they gave text (a listening report, posts, 
 About 0.05 USD a name plus 0.09 USD a call, and 40 to 90 seconds a name. State the estimate, then:
 
 ```bash
-python -m radar keywords "photocraft" "synthid detector" --repo "photocraft=storytold/photocraft" --json
+pnpm radar keywords "photocraft" "synthid detector" --repo "photocraft=storytold/photocraft" --json
 ```
 
 Drop `--json` for the Markdown table alone. Run one call with all the names, not one call per name: the 0.09 USD is per call.

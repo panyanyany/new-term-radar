@@ -9,8 +9,8 @@ The whole job in one run: collect what is new, then work out which keywords are 
 
 ## Before you run anything
 
-1. Find the radar: `$NEW_TERM_RADAR_DIR` if set, else `~/new-term-radar`; clone https://github.com/zhuyansen/new-term-radar there if missing. Run every command from that directory. Python 3.10 or newer; nothing to install.
-2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): the X posts, the search volumes, Google Trends and the models all go through it. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
+1. Find the radar: `$NEW_TERM_RADAR_DIR` if set, else `~/new-term-radar`; clone https://github.com/zhuyansen/new-term-radar there if missing. Run every command from that directory. Node.js 22+ and pnpm; run `pnpm install --frozen-lockfile` and `pnpm build`.
+2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): Google Ads volumes and model calls go through it. X timelines and global search default to Twitter AIO (`TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`); worldwide Trends requires `SCRAPPA_API_KEY` or an existing Scrappa local configuration. Original X providers remain selectable via `X_TIMELINE_PROVIDER=scrappa` and `X_SEARCH_PROVIDER=aisa`; there is no automatic paid fallback. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
 3. `GOANYAPI_API_KEY` is optional (a key comes from https://goanyapi.com/r/ga-95708898fb). With it the table also holds what people really searched together with each name, and reads the bigger rows from one country's settled series. Without it, tell the user a "flat" reading is weaker evidence.
 4. If there is no `config.json`, copy `config.example.json` and tell the user they are on the example list of X accounts and sitemaps.
 
@@ -19,7 +19,7 @@ The whole job in one run: collect what is new, then work out which keywords are 
 **The user has names already** ("research PhotoCraft and SynthID Detector"): skip collection.
 
 ```bash
-python -m radar keywords "photocraft" "synthid detector" --repo "photocraft=storytold/photocraft" --json
+pnpm radar keywords "photocraft" "synthid detector" --repo "photocraft=storytold/photocraft" --json
 ```
 
 About 0.05 USD a name plus 0.09 USD a call, 40 to 90 seconds a name, eight names at most. One call for all the names.
@@ -27,7 +27,7 @@ About 0.05 USD a name plus 0.09 USD a call, 40 to 90 seconds a name, eight names
 **The user wants today's new terms**: run everything.
 
 ```bash
-python -m radar daily --out report.md
+pnpm radar daily --out report.md
 ```
 
 With the example config this is about 0.30 USD and 10 to 15 minutes: it reads every X account in `config.json` (0.003 USD and 10 seconds each), finds breakout repositories and new sitemap pages, scores which terms are names, then builds the keyword table for up to five of the day's names. It writes `report.md` and `report.json`.

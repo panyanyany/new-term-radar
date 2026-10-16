@@ -26,17 +26,17 @@ One example it was built around: [Niko1221/Strata](https://github.com/Niko1221/S
 
 | Signal | What it catches | Needs | Cost |
 |---|---|---|---|
-| ① X | Names the accounts in your list used for the first time in 60 days | AIsa key | $0.003 per account per run |
+| ① X | Names the accounts in your list used for the first time in 60 days | Twitter AIO key (Scrappa backup) | AIO plan billing; not included in the report estimate |
 | ① Hugging Face | Models new to the trending top 50; quantised copies grouped under the base name | nothing | free |
 | ② GitHub breakout | A repo under 14 days old averaging 200+ stars a day, or +400 since yesterday; adds the search variants people use ("niko strata") | nothing (a GitHub token raises the rate limit) | free |
 | ③ Sitemaps | Words that several new URLs on a site share and its older URLs rarely carried | the sitemaps you list | free |
 | ③ New sites | Domains registered and first indexed in the last 90 days that already rank for 20+ keywords | AIsa key | about $0.13 per query, weekly |
 | ④ Search Console | Queries your site got impressions for, for the first time (fresh data) | your own Google token | free |
-| ⑤ Review | Each lead checked in Google Trends 14 days later, against its own baseline; hit rate and days ahead per signal | AIsa key | $0.0012 per search variant |
-| Keyword table | For the day's new names: the generic search terms behind them (what people do with the new thing), each sized and given a decision | AIsa key; [GoAnyAPI](https://goanyapi.com) key optional | about $0.15 a day for 5 names, $0.22 with GoAnyAPI |
+| ⑤ Review | Each lead checked in Google Trends 14 days later, against its own baseline; hit rate and days ahead per signal | Scrappa key | Starter-rate estimate, before free credits |
+| Keyword table | For the day's new names: the generic search terms behind them (what people do with the new thing), each sized and given a decision | Twitter AIO, AIsa and Scrappa keys; [GoAnyAPI](https://goanyapi.com) optional | Provider usage plus the AIO plan; see costs guide |
 | Name judge | A small model scores every term: the name of one specific thing, or a common word? | AIsa key | a fraction of a cent per run |
 
-Prices are what AIsa charged in October 2026. With the example config (35 X accounts read three times a day, the keyword table for 5 names a day) a month costs about $15: $10 for the X reads, $5 for the keyword table. Read fewer accounts, or read them once a day, and it drops in proportion.
+The $0.003 AIsa X request rate is a backup-provider rate. Default X requests use the Twitter AIO subscription; its plan price and quota have not been verified, so the report excludes those charges. Other provider costs and billing boundaries are documented in [.devguide/costs.md](.devguide/costs.md).
 
 ## The keyword table
 
@@ -52,7 +52,7 @@ A name is half of what you need. "SynthID Detector" has a short life as a keywor
 
 (a real run, 2026-10-12, shortened)
 
-How it is made (`radar/usecases.py`):
+How it is made (`src/usecases.ts`):
 
 1. **Evidence**: the most-liked posts that mention the name (X advanced search) and, for a repository, its README.
 2. **Phrases**: a model reads the evidence and writes the keyword an ordinary person would type for each job it sees people doing, with a quote that backs it. A phrase built on another product's name ("photoshop alternative") is kept and marked ⚠: demand often hangs on the incumbent, and whether to use someone's brand is your call.
@@ -83,7 +83,7 @@ The table is still written, but it gets thinner, and it says which part is missi
 |---|---|---|
 | No `GOANYAPI_API_KEY` (the default) | The 🔎 rows, each name's long-tails, the other names searched alongside, and the `(US)` readings. Phrases come from the model alone and every curve from the worldwide series, where a real move can read flat | "Related queries are off: set GOANYAPI_API_KEY…" |
 | GoAnyAPI's Trends is down (seen on its first day in use, 2026-10-12) | The same as having no key, for that run | "Related queries failed for: …" and "Country series failed, worldwide data used instead: …" |
-| AIsa's post search fails for a name (timeouts seen twice on 2026-10-13) | That name's posts. A repository still has its README; a model or product without one is left with the related queries only, and with no GoAnyAPI key it gets no generic terms that day | "The post search failed; this run used READMEs and related queries only: …" |
+| The selected X post search fails for a name (timeouts seen twice on 2026-10-13) | That name's posts. A repository still has its README; a model or product without one is left with the related queries only, and with no GoAnyAPI key it gets no generic terms that day | "The post search failed; this run used READMEs and related queries only: …" |
 | Neither posts nor a README for a name | Its generic terms; the name's own row stays | "No posts or README found for: …" |
 | No lead that day is a thing with a name score of 0.8 or more | The whole table | "Nothing to read today…" |
 | AIsa's search-volume or Trends lookup fails | The whole table: these two are not replaceable | the error, in place of the table |
@@ -92,9 +92,13 @@ A thin table is not a quiet day. Read the lines under it before you conclude tha
 
 Set `"usecases": {"per_day": 0}` or pass `--skip usecases` to turn it off.
 
-## One key, and an optional second
+## Data sources and keys
 
-Everything the radar needs goes through [AIsa](https://go.aisa.one/yansen-zhu): X posts, Google Trends and domain data (DataForSEO behind it) and the models that judge names and propose phrases. One key, pay per call, no subscriptions to X's API or DataForSEO.
+Account timelines and global X post search default to Twitter AIO: set `TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`. The original implementations remain available: `X_TIMELINE_PROVIDER=scrappa` and `X_SEARCH_PROVIDER=aisa`. Selection is independent; failures do not automatically trigger another paid provider. Search locally filters text, dates, likes and replies, following at most five pages until twelve qualifying posts are available. AIO subscription charges are excluded from the report estimate.
+
+Worldwide Google Trends uses [Scrappa MCP](https://scrappa.co/docs/mcp-integration), with `SCRAPPA_API_KEY`. [AIsa](https://go.aisa.one/yansen-zhu) supplies Google Ads volume, domain data, model calls and optional backup X search, with `AISA_API_KEY`. See [.devguide/twitter-aio.md](.devguide/twitter-aio.md) for credentials and switching.
+
+Related queries remain on GoAnyAPI because its response distinguishes `top` and `rising`. Rising queries come first; top queries supplement keyword candidates. Only rising queries can produce leads for other new products. The tested Scrappa response is an unclassified list and cannot replace rising queries.
 
 > That link is a referral link: signing up through it supports this project. The radar works the same with a key from anywhere on aisa.one.
 
@@ -104,14 +108,18 @@ Without an AIsa key the free signals still run (Hugging Face, GitHub, sitemaps, 
 
 ## Quick start
 
-Python 3.10 or newer. The radar uses only the standard library.
+Node.js 22+ and pnpm 10.33.0. Runtime dependencies include the official TypeScript MCP SDK v1.
 
 ```bash
 git clone https://github.com/zhuyansen/new-term-radar
 cd new-term-radar
 cp config.example.json config.json      # then edit: your X accounts, sitemaps, topics
+pnpm install --frozen-lockfile
+pnpm build
+export SCRAPPA_API_KEY=...              # from https://scrappa.co
+export TWITTER_AIO_RAPIDAPI_KEY=...    # or ~/.twitter-aio/key
 export AISA_API_KEY=...                 # from https://go.aisa.one/yansen-zhu; or `aisa login` with the AIsa CLI
-python -m radar daily --out report.md
+pnpm radar daily --out report.md
 ```
 
 The first run builds its snapshots: yesterday's X vocabulary, star counts and sitemap URLs do not exist yet, so only GitHub breakouts (which need no yesterday) are reported. From the second run on, every signal reports what changed.
@@ -119,11 +127,11 @@ The first run builds its snapshots: yesterday's X vocabulary, star counts and si
 Two commands:
 
 ```bash
-python -m radar sources --out sources.md           # ① only: X and Hugging Face. Run every few hours.
-python -m radar daily --skip x,hf --out report.md  # everything else, once a day
+pnpm radar sources --out sources.md           # ① only: X and Hugging Face. Run every few hours.
+pnpm radar daily --skip x,hf --out report.md  # everything else, once a day
 ```
 
-`sources` writes a report only when there is a new name. `daily` with `--skip x,hf` lists what `sources` kept in the last 24 hours. If you run only once a day, use `python -m radar daily` and skip nothing.
+`sources` writes a report only when there is a new name. `daily` with `--skip x,hf` lists what `sources` kept in the last 24 hours. If you run only once a day, use `pnpm radar daily` and skip nothing.
 
 Other flags: `--skip` takes any of `x,hf,breakout,sitemaps,newsites,gsc,review,judge,usecases`; `--new-sites` runs the weekly signal today; `--mail` sends the report (below); `--state DIR` moves the database and snapshots.
 
@@ -177,15 +185,14 @@ Please read each site's robots.txt before you add its sitemap, and keep `pause` 
 ### Search Console (optional)
 
 ```bash
-pip install google-auth-oauthlib
-python scripts/gsc_auth.py gsc_client.json   # opens a browser once, writes gsc_token.json
+pnpm gsc-auth gsc_client.json   # open the printed URL once; writes gsc_token.json
 ```
 
 `gsc_client.json` is an OAuth client of type "Desktop app" from Google Cloud Console, in a project with the Search Console API enabled. Then set `"gsc": {"site": "sc-domain:your-site.com"}`. The token is read-only and stays on your machine; `.gitignore` already lists it.
 
 ### Mail (optional)
 
-`--mail` sends the report through [Resend](https://resend.com). Set `RESEND_API_KEY`, `EMAIL_FROM` (an address on a domain you verified there) and `RADAR_EMAIL_TO` (comma-separated). `pip install markdown` for the HTML version.
+`--mail` sends the report through [Resend](https://resend.com). Set `RESEND_API_KEY`, `EMAIL_FROM` (an address on a domain you verified there) and `RADAR_EMAIL_TO` (comma-separated). HTML rendering is included via `marked`.
 
 ## Use it from an agent: skills and an MCP server
 
@@ -217,16 +224,19 @@ Then ask your agent for "today's new AI keywords", "an AI listening report" or "
 For clients that speak MCP (Claude Code, Cursor, Claude Desktop):
 
 ```bash
-pip install "new-term-radar[mcp] @ git+https://github.com/zhuyansen/new-term-radar"
+pnpm install --frozen-lockfile
+pnpm build
 ```
 
 ```json
 {
   "mcpServers": {
     "new-term-radar": {
-      "command": "new-term-radar-mcp",
+      "command": "node",
+      "args": ["/absolute/path/new-term-radar/dist/src/cli.js", "mcp"],
       "env": {
         "AISA_API_KEY": "...",
+        "SCRAPPA_API_KEY": "...",
         "RADAR_CONFIG": "/absolute/path/to/config.json",
         "RADAR_STATE": "/absolute/path/to/state"
       }
@@ -241,7 +251,7 @@ pip install "new-term-radar[mcp] @ git+https://github.com/zhuyansen/new-term-rad
 | `keyword_table` | The keyword table for names you give it | about $0.05 a name plus $0.09 a call; 40 to 90 seconds a name |
 | `run_radar` | One `sources` or `daily` run and its report | paid; minutes. For a first try: the schedule belongs in cron or Actions |
 
-Point `RADAR_STATE` at the directory your scheduled runs write to and `recent_leads` shows their leads. The same two commands exist on the command line: `python -m radar keywords "name" …` and `python -m radar leads`.
+Point `RADAR_STATE` at the directory your scheduled runs write to and `recent_leads` shows their leads. The same two commands exist on the command line: `pnpm radar keywords "name" …` and `pnpm radar leads`.
 
 ## Run it on GitHub Actions
 
@@ -249,15 +259,15 @@ Point `RADAR_STATE` at the directory your scheduled runs write to and `recent_le
 
 1. Fork the repository (a private fork is fine).
 2. Remove `config.json` from `.gitignore` and commit your config. It holds no secrets.
-3. Add the secret `AISA_API_KEY`; optionally `GOANYAPI_API_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `RADAR_EMAIL_TO`, `GSC_TOKEN_JSON`.
+3. Add secrets `AISA_API_KEY` and `SCRAPPA_API_KEY`; optionally `GOANYAPI_API_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `RADAR_EMAIL_TO`, `GSC_TOKEN_JSON`.
 4. Set the repository variable `RADAR_ENABLED` to `true`.
 
 ## How the pieces decide
 
-- **Names in posts** (`radar/terms.py`): capitalised words, words with a digit (`Qwen3.8`) or inner capitals (`HyperFrames`); a number after a name joins it (`Opus 5.5`). A name two accounts used counts; a name one account used needs 100 likes and must be unmistakably a name, since a capitalised word is often just the start of a sentence.
+- **Names in posts** (`src/terms.ts`): capitalised words, words with a digit (`Qwen3.8`) or inner capitals (`HyperFrames`); a number after a name joins it (`Opus 5.5`). A name two accounts used counts; a name one account used needs 100 likes and must be unmistakably a name, since a capitalised word is often just the start of a sentence.
 - **Surges in sitemaps**: counted per distinct URL against the site's own baseline, so one page with a long slug cannot fake a wave.
-- **The judge** (`radar/judge.py`): one chat call per 25 terms, each with up to three places it appeared. If the call fails the report still goes out, unsorted.
-- **The review** (`radar/review.py`): a variant "rose" when its peak after the day we reported it clears its own earlier baseline by 2x and by 10 points. A word with an older meaning ("strata": rock layers, property law) has a high baseline and does not count; "niko1221 strata" going from 0 to something does. Trends' unsettled last two days are left out.
+- **The judge** (`src/judge.ts`): one chat call per 25 terms, each with up to three places it appeared. If the call fails the report still goes out, unsorted.
+- **The review** (`src/review.ts`): a variant "rose" when its peak after the day we reported it clears its own earlier baseline by 2x and by 10 points. A word with an older meaning ("strata": rock layers, property law) has a high baseline and does not count; "niko1221 strata" going from 0 to something does. Trends' unsettled last two days are left out.
 
 ## What we measured, and what we have not
 
@@ -274,8 +284,7 @@ Point `RADAR_STATE` at the directory your scheduled runs write to and `recent_le
 ## Development
 
 ```bash
-pip install pytest markdown
-python -m pytest -q tests
+pnpm check
 ```
 
 The tests cover the logic (name extraction, scoring, the store, the reports) and call no network.
@@ -285,7 +294,7 @@ The tests cover the logic (name extraction, scoring, the store, the reports) and
 - [子木 @CoderJeffLee](https://x.com/CoderJeffLee) for the idea behind the keyword table: a new name and the generic terms downstream of it belong in one table, each with a decision.
 - [饭特稀 | Fentix @fantexi997](https://x.com/fantexi997) for [GoAnyAPI](https://goanyapi.com), the optional source of related queries and one-country Trends series.
 
-The diagram is drawn by `docs/make_diagram.py` (needs `rsvg-convert` and `ffmpeg`).
+The diagram is drawn by `scripts/make-diagram.ts` (`pnpm diagram`) (needs `rsvg-convert` and `ffmpeg`).
 
 ## License
 

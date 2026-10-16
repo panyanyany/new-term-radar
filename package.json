@@ -1,0 +1,62 @@
+{
+  "name": "new-term-radar",
+  "version": "0.2.1",
+  "description": "AI new-term radar with Scrappa MCP, search-volume research and persistent review",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "radar": "tsx src/cli.ts",
+    "notify": "tsx scripts/notify-report.ts",
+    "gsc-auth": "tsx scripts/gsc-auth.ts",
+    "format": "prettier --write src scripts tests/*.ts package.json tsconfig*.json",
+    "format:check": "prettier --check src scripts tests/*.ts package.json tsconfig*.json",
+    "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
+    "diagram": "tsx scripts/make-diagram.ts"
+  },
+  "bin": {
+    "new-term-radar": "dist/src/cli.js",
+    "new-term-radar-mcp": "dist/src/mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "better-sqlite3": "^12.6.2",
+    "commander": "^14.0.3",
+    "dotenv": "^17.3.1",
+    "fast-xml-parser": "^5.5.6",
+    "google-auth-library": "^10.5.0",
+    "marked": "^17.0.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.10.0",
+    "prettier": "^3.9.10",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  },
+  "files": [
+    "dist/src",
+    "dist/scripts",
+    "config.example.json",
+    "mcp.example.json",
+    "LICENSE",
+    "README.md",
+    "README.zh-CN.md",
+    "dist/docs/diagram-scenes.json",
+    "pnpm-lock.yaml"
+  ]
+}

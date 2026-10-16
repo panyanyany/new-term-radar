@@ -7,7 +7,7 @@ name: New-term radar
 #            source leads of the last day.
 #
 # Off until you opt in: set the repository variable RADAR_ENABLED to "true"
-# (Settings > Secrets and variables > Actions > Variables), add the secret AISA_API_KEY,
+# (Settings > Secrets and variables > Actions > Variables), add AISA_API_KEY and SCRAPPA_API_KEY,
 # and commit your config.json (remove it from .gitignore first; it holds no secrets).
 # Optional secrets: GOANYAPI_API_KEY (related queries in the keyword table),
 # RESEND_API_KEY, EMAIL_FROM, RADAR_EMAIL_TO (mail the reports),
@@ -46,11 +46,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - uses: pnpm/action-setup@v4
 
-      - run: pip install -r requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
 
       - name: Restore the state
         uses: actions/cache/restore@v4
@@ -62,6 +66,10 @@ jobs:
       - name: Run the radar
         env:
           AISA_API_KEY: ${{ secrets.AISA_API_KEY }}
+          TWITTER_AIO_RAPIDAPI_KEY: ${{ secrets.TWITTER_AIO_RAPIDAPI_KEY }}
+          X_TIMELINE_PROVIDER: ${{ vars.X_TIMELINE_PROVIDER }}
+          X_SEARCH_PROVIDER: ${{ vars.X_SEARCH_PROVIDER }}
+          SCRAPPA_API_KEY: ${{ secrets.SCRAPPA_API_KEY }}
           GOANYAPI_API_KEY: ${{ secrets.GOANYAPI_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           GSC_TOKEN_JSON: ${{ secrets.GSC_TOKEN_JSON }}
@@ -70,9 +78,9 @@ jobs:
           RADAR_EMAIL_TO: ${{ secrets.RADAR_EMAIL_TO }}
         run: |
           if [ "$COMMAND" = "daily" ]; then
-            python -m radar daily --skip x,hf --out report.md ${RADAR_EMAIL_TO:+--mail}
+            node dist/src/cli.js daily --skip x,hf --out report.md ${RADAR_EMAIL_TO:+--mail}
           else
-            python -m radar sources --out report.md ${RADAR_EMAIL_TO:+--mail}
+            node dist/src/cli.js sources --out report.md ${RADAR_EMAIL_TO:+--mail}
           fi
           if [ -f report.md ]; then cat report.md >> "$GITHUB_STEP_SUMMARY"; fi
 

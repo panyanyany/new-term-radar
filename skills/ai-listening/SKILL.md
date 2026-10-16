@@ -9,8 +9,8 @@ Produce one report: the names of new AI models, products and repositories seen i
 
 ## Before you run anything
 
-1. Find the radar. Use `$NEW_TERM_RADAR_DIR` if set, else `~/new-term-radar`. If neither exists, clone it: `git clone https://github.com/zhuyansen/new-term-radar ~/new-term-radar`. Run every command from that directory. Python 3.10 or newer; no packages to install.
-2. Check an AIsa key is available: `AISA_API_KEY`, or the AIsa CLI logged in (`ls ~/.aisa/key`). Without one only the free signals run (Hugging Face, GitHub, sitemaps), no X posts are read, and nothing judges which terms are names. Say so in the report. A key comes from https://go.aisa.one/yansen-zhu.
+1. Find the radar. Use `$NEW_TERM_RADAR_DIR` if set, else `~/new-term-radar`. If neither exists, clone it: `git clone https://github.com/zhuyansen/new-term-radar ~/new-term-radar`. Run every command from that directory. Node.js 22+ and pnpm; run `pnpm install --frozen-lockfile` and `pnpm build`.
+2. Check an AIsa key is available: `AISA_API_KEY`, or the AIsa CLI logged in (`ls ~/.aisa/key`). Without one the name judge is unavailable; X timelines independently require Twitter AIO (`TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`), or explicitly select the preserved Scrappa implementation with `X_TIMELINE_PROVIDER=scrappa`. Say so in the report. A key comes from https://go.aisa.one/yansen-zhu.
 3. If there is no `config.json`, copy `config.example.json` to `config.json`. Tell the user they are on the example list of X accounts and sitemaps and can edit it.
 
 ## Cost and time, say this first
@@ -20,14 +20,14 @@ A run reads every X account in `config.json`: about 0.003 USD and 10 seconds eac
 ## Run
 
 ```bash
-python -m radar daily --skip usecases,review,newsites --out listening.md
+pnpm radar daily --skip usecases,review,newsites --out listening.md
 ```
 
 This reads X, Hugging Face, GitHub breakouts and the sitemaps, merges terms seen by several signals, and scores each as a name or a common word. It writes `listening.md` and `listening.json`.
 
 The first run on a machine only builds snapshots (yesterday's X vocabulary, star counts, sitemap URLs do not exist yet), so it reports GitHub breakouts and little else. Say this plainly instead of presenting a thin report as a quiet day. From the second run on, every signal reports what is new.
 
-If the user only wants the fastest-moving sources, `python -m radar sources --out listening.md` reads X and Hugging Face alone and writes nothing when there is no new name.
+If the user only wants the fastest-moving sources, `pnpm radar sources --out listening.md` reads X and Hugging Face alone and writes nothing when there is no new name.
 
 ## Write the report
 
@@ -41,7 +41,7 @@ Give the user:
 
 Keep only leads with `named` of 0.5 or more unless the judge did not run. Leave out leads whose `known` is set: the user already covers those. Do not add names from your own knowledge: the report is what the radar saw.
 
-`python -m radar leads --days 1` lists what was kept, for a quick look without a new run. It is free.
+`pnpm radar leads --days 1` lists what was kept, for a quick look without a new run. It is free.
 
 ## What this cannot tell you
 

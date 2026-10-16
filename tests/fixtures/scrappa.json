@@ -1,0 +1,3730 @@
+{
+  "tweets": {
+    "results": [
+      {
+        "id": "2110841898076418336",
+        "text": "We're expanding access to GPT-Rosalind for academic research.\n\nThe new Rosalind Academic Plan helps scientific labs bring AI into the work of understanding biology, exploring ideas, and deciding what to test next—with sponsored access for eligible labs at U.S. universities.\n\nAcademic research starts with questions whose impact may take years to impact human health.",
+        "likes": 1869,
+        "url": "https://x.com/OpenAI/status/2110841898076418336",
+        "created_at": "Thu Oct 15 21:15:00 +0000 2026",
+        "reposted_by": null
+      },
+      {
+        "id": "2110841899838046525",
+        "text": "GPT-Rosalind is built to support that work: helping researchers reason across scientific literature and biological data, with scientists bringing the expertise and judgment to evaluate the evidence.\n\nEligible labs can receive up to 12 months of sponsored access to OpenAI tools, with GPT-Rosalind access subject to trusted-access approval.\n\nResearch data shared through the Rosalind Academic Plan is not used to train our models by default.",
+        "likes": 168,
+        "url": "https://x.com/OpenAI/status/2110841899838046525",
+        "created_at": "Thu Oct 15 21:15:01 +0000 2026",
+        "reposted_by": null
+      }
+    ],
+    "count": 22,
+    "cursor": null
+  },
+  "comparison": {
+    "search_parameters": {
+      "keyword": "claude code,gpts",
+      "geo": "Worldwide",
+      "time_range": "today+3-m",
+      "hl": "en",
+      "search_type": "web",
+      "keywords": [
+        "claude code",
+        "gpts"
+      ]
+    },
+    "timeline_data": [
+      {
+        "timestamp": 1784160000,
+        "date": "Jul 16, 2026",
+        "value": 75,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 75,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784246400,
+        "date": "Jul 17, 2026",
+        "value": 71,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 71,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784332800,
+        "date": "Jul 18, 2026",
+        "value": 58,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 58,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784419200,
+        "date": "Jul 19, 2026",
+        "value": 89,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 89,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 4,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784505600,
+        "date": "Jul 20, 2026",
+        "value": 76,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 76,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784592000,
+        "date": "Jul 21, 2026",
+        "value": 76,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 76,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784678400,
+        "date": "Jul 22, 2026",
+        "value": 73,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 73,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784764800,
+        "date": "Jul 23, 2026",
+        "value": 79,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 79,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784851200,
+        "date": "Jul 24, 2026",
+        "value": 78,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 78,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1784937600,
+        "date": "Jul 25, 2026",
+        "value": 74,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 74,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785024000,
+        "date": "Jul 26, 2026",
+        "value": 80,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 80,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785110400,
+        "date": "Jul 27, 2026",
+        "value": 100,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 100,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785196800,
+        "date": "Jul 28, 2026",
+        "value": 92,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 92,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785283200,
+        "date": "Jul 29, 2026",
+        "value": 83,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 83,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785369600,
+        "date": "Jul 30, 2026",
+        "value": 80,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 80,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785456000,
+        "date": "Jul 31, 2026",
+        "value": 79,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 79,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785542400,
+        "date": "Aug 1, 2026",
+        "value": 61,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 61,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785628800,
+        "date": "Aug 2, 2026",
+        "value": 61,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 61,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785715200,
+        "date": "Aug 3, 2026",
+        "value": 67,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 67,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785801600,
+        "date": "Aug 4, 2026",
+        "value": 65,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 65,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785888000,
+        "date": "Aug 5, 2026",
+        "value": 65,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 65,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1785974400,
+        "date": "Aug 6, 2026",
+        "value": 67,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 67,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786060800,
+        "date": "Aug 7, 2026",
+        "value": 63,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 63,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786147200,
+        "date": "Aug 8, 2026",
+        "value": 47,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 47,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786233600,
+        "date": "Aug 9, 2026",
+        "value": 55,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 55,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786320000,
+        "date": "Aug 10, 2026",
+        "value": 68,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 68,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786406400,
+        "date": "Aug 11, 2026",
+        "value": 66,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 66,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786492800,
+        "date": "Aug 12, 2026",
+        "value": 63,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 63,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786579200,
+        "date": "Aug 13, 2026",
+        "value": 63,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 63,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786665600,
+        "date": "Aug 14, 2026",
+        "value": 65,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 65,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786752000,
+        "date": "Aug 15, 2026",
+        "value": 51,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 51,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786838400,
+        "date": "Aug 16, 2026",
+        "value": 49,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 49,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1786924800,
+        "date": "Aug 17, 2026",
+        "value": 69,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 69,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787011200,
+        "date": "Aug 18, 2026",
+        "value": 70,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 70,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787097600,
+        "date": "Aug 19, 2026",
+        "value": 77,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 77,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787184000,
+        "date": "Aug 20, 2026",
+        "value": 58,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 58,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787270400,
+        "date": "Aug 21, 2026",
+        "value": 53,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 53,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787356800,
+        "date": "Aug 22, 2026",
+        "value": 35,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 35,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787443200,
+        "date": "Aug 23, 2026",
+        "value": 36,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 36,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787529600,
+        "date": "Aug 24, 2026",
+        "value": 57,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 57,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787616000,
+        "date": "Aug 25, 2026",
+        "value": 61,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 61,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787702400,
+        "date": "Aug 26, 2026",
+        "value": 60,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 60,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787788800,
+        "date": "Aug 27, 2026",
+        "value": 59,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 59,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787875200,
+        "date": "Aug 28, 2026",
+        "value": 56,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 56,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1787961600,
+        "date": "Aug 29, 2026",
+        "value": 41,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 41,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788048000,
+        "date": "Aug 30, 2026",
+        "value": 40,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 40,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788134400,
+        "date": "Aug 31, 2026",
+        "value": 55,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 55,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788220800,
+        "date": "Sep 1, 2026",
+        "value": 61,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 61,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788307200,
+        "date": "Sep 2, 2026",
+        "value": 74,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 74,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788393600,
+        "date": "Sep 3, 2026",
+        "value": 70,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 70,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788480000,
+        "date": "Sep 4, 2026",
+        "value": 65,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 65,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788566400,
+        "date": "Sep 5, 2026",
+        "value": 47,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 47,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788652800,
+        "date": "Sep 6, 2026",
+        "value": 46,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 46,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788739200,
+        "date": "Sep 7, 2026",
+        "value": 63,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 63,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788825600,
+        "date": "Sep 8, 2026",
+        "value": 61,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 61,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788912000,
+        "date": "Sep 9, 2026",
+        "value": 63,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 63,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1788998400,
+        "date": "Sep 10, 2026",
+        "value": 60,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 60,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789084800,
+        "date": "Sep 11, 2026",
+        "value": 52,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 52,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789171200,
+        "date": "Sep 12, 2026",
+        "value": 37,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 37,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789257600,
+        "date": "Sep 13, 2026",
+        "value": 36,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 36,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789344000,
+        "date": "Sep 14, 2026",
+        "value": 59,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 59,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 3,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789430400,
+        "date": "Sep 15, 2026",
+        "value": 62,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 62,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 3,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789516800,
+        "date": "Sep 16, 2026",
+        "value": 63,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 63,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 3,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789603200,
+        "date": "Sep 17, 2026",
+        "value": 68,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 68,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 4,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789689600,
+        "date": "Sep 18, 2026",
+        "value": 60,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 60,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789776000,
+        "date": "Sep 19, 2026",
+        "value": 80,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 80,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 5,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789862400,
+        "date": "Sep 20, 2026",
+        "value": 85,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 85,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 8,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1789948800,
+        "date": "Sep 21, 2026",
+        "value": 93,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 93,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 6,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790035200,
+        "date": "Sep 22, 2026",
+        "value": 66,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 66,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 3,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790121600,
+        "date": "Sep 23, 2026",
+        "value": 65,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 65,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790208000,
+        "date": "Sep 24, 2026",
+        "value": 63,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 63,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790294400,
+        "date": "Sep 25, 2026",
+        "value": 50,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 50,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790380800,
+        "date": "Sep 26, 2026",
+        "value": 43,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 43,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790467200,
+        "date": "Sep 27, 2026",
+        "value": 42,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 42,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790553600,
+        "date": "Sep 28, 2026",
+        "value": 60,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 60,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790640000,
+        "date": "Sep 29, 2026",
+        "value": 62,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 62,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790726400,
+        "date": "Sep 30, 2026",
+        "value": 59,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 59,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 2,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790812800,
+        "date": "Oct 1, 2026",
+        "value": 53,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 53,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790899200,
+        "date": "Oct 2, 2026",
+        "value": 49,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 49,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1790985600,
+        "date": "Oct 3, 2026",
+        "value": 42,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 42,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791072000,
+        "date": "Oct 4, 2026",
+        "value": 38,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 38,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791158400,
+        "date": "Oct 5, 2026",
+        "value": 54,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 54,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791244800,
+        "date": "Oct 6, 2026",
+        "value": 56,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 56,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791331200,
+        "date": "Oct 7, 2026",
+        "value": 58,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 58,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791417600,
+        "date": "Oct 8, 2026",
+        "value": 60,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 60,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791504000,
+        "date": "Oct 9, 2026",
+        "value": 56,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 56,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791590400,
+        "date": "Oct 10, 2026",
+        "value": 46,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 46,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791676800,
+        "date": "Oct 11, 2026",
+        "value": 43,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 43,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791763200,
+        "date": "Oct 12, 2026",
+        "value": 57,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 57,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791849600,
+        "date": "Oct 13, 2026",
+        "value": 61,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 61,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1791936000,
+        "date": "Oct 14, 2026",
+        "value": 60,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 60,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1792022400,
+        "date": "Oct 15, 2026",
+        "value": 61,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 61,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      },
+      {
+        "timestamp": 1792108800,
+        "date": "Oct 16, 2026",
+        "value": 62,
+        "values": [
+          {
+            "query": "claude code",
+            "query_index": 0,
+            "value": 62,
+            "has_data": true
+          },
+          {
+            "query": "gpts",
+            "query_index": 1,
+            "value": 1,
+            "has_data": true
+          }
+        ]
+      }
+    ],
+    "interest_over_time": {
+      "average": 61.69,
+      "max_value": 100,
+      "min_value": 35,
+      "data_points": [
+        {
+          "timestamp": 1784160000,
+          "date": "Jul 16, 2026",
+          "value": 75,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 75,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784246400,
+          "date": "Jul 17, 2026",
+          "value": 71,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 71,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784332800,
+          "date": "Jul 18, 2026",
+          "value": 58,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 58,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784419200,
+          "date": "Jul 19, 2026",
+          "value": 89,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 89,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 4,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784505600,
+          "date": "Jul 20, 2026",
+          "value": 76,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 76,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784592000,
+          "date": "Jul 21, 2026",
+          "value": 76,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 76,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784678400,
+          "date": "Jul 22, 2026",
+          "value": 73,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 73,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784764800,
+          "date": "Jul 23, 2026",
+          "value": 79,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 79,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784851200,
+          "date": "Jul 24, 2026",
+          "value": 78,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 78,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1784937600,
+          "date": "Jul 25, 2026",
+          "value": 74,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 74,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785024000,
+          "date": "Jul 26, 2026",
+          "value": 80,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 80,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785110400,
+          "date": "Jul 27, 2026",
+          "value": 100,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 100,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785196800,
+          "date": "Jul 28, 2026",
+          "value": 92,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 92,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785283200,
+          "date": "Jul 29, 2026",
+          "value": 83,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 83,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785369600,
+          "date": "Jul 30, 2026",
+          "value": 80,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 80,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785456000,
+          "date": "Jul 31, 2026",
+          "value": 79,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 79,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785542400,
+          "date": "Aug 1, 2026",
+          "value": 61,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 61,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785628800,
+          "date": "Aug 2, 2026",
+          "value": 61,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 61,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785715200,
+          "date": "Aug 3, 2026",
+          "value": 67,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 67,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785801600,
+          "date": "Aug 4, 2026",
+          "value": 65,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 65,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785888000,
+          "date": "Aug 5, 2026",
+          "value": 65,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 65,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1785974400,
+          "date": "Aug 6, 2026",
+          "value": 67,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 67,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786060800,
+          "date": "Aug 7, 2026",
+          "value": 63,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 63,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786147200,
+          "date": "Aug 8, 2026",
+          "value": 47,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 47,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786233600,
+          "date": "Aug 9, 2026",
+          "value": 55,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 55,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786320000,
+          "date": "Aug 10, 2026",
+          "value": 68,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 68,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786406400,
+          "date": "Aug 11, 2026",
+          "value": 66,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 66,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786492800,
+          "date": "Aug 12, 2026",
+          "value": 63,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 63,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786579200,
+          "date": "Aug 13, 2026",
+          "value": 63,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 63,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786665600,
+          "date": "Aug 14, 2026",
+          "value": 65,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 65,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786752000,
+          "date": "Aug 15, 2026",
+          "value": 51,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 51,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786838400,
+          "date": "Aug 16, 2026",
+          "value": 49,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 49,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1786924800,
+          "date": "Aug 17, 2026",
+          "value": 69,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 69,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787011200,
+          "date": "Aug 18, 2026",
+          "value": 70,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 70,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787097600,
+          "date": "Aug 19, 2026",
+          "value": 77,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 77,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787184000,
+          "date": "Aug 20, 2026",
+          "value": 58,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 58,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787270400,
+          "date": "Aug 21, 2026",
+          "value": 53,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 53,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787356800,
+          "date": "Aug 22, 2026",
+          "value": 35,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 35,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787443200,
+          "date": "Aug 23, 2026",
+          "value": 36,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 36,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787529600,
+          "date": "Aug 24, 2026",
+          "value": 57,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 57,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787616000,
+          "date": "Aug 25, 2026",
+          "value": 61,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 61,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787702400,
+          "date": "Aug 26, 2026",
+          "value": 60,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 60,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787788800,
+          "date": "Aug 27, 2026",
+          "value": 59,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 59,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787875200,
+          "date": "Aug 28, 2026",
+          "value": 56,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 56,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1787961600,
+          "date": "Aug 29, 2026",
+          "value": 41,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 41,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788048000,
+          "date": "Aug 30, 2026",
+          "value": 40,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 40,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788134400,
+          "date": "Aug 31, 2026",
+          "value": 55,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 55,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788220800,
+          "date": "Sep 1, 2026",
+          "value": 61,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 61,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788307200,
+          "date": "Sep 2, 2026",
+          "value": 74,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 74,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788393600,
+          "date": "Sep 3, 2026",
+          "value": 70,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 70,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788480000,
+          "date": "Sep 4, 2026",
+          "value": 65,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 65,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788566400,
+          "date": "Sep 5, 2026",
+          "value": 47,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 47,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788652800,
+          "date": "Sep 6, 2026",
+          "value": 46,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 46,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788739200,
+          "date": "Sep 7, 2026",
+          "value": 63,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 63,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788825600,
+          "date": "Sep 8, 2026",
+          "value": 61,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 61,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788912000,
+          "date": "Sep 9, 2026",
+          "value": 63,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 63,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1788998400,
+          "date": "Sep 10, 2026",
+          "value": 60,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 60,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789084800,
+          "date": "Sep 11, 2026",
+          "value": 52,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 52,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789171200,
+          "date": "Sep 12, 2026",
+          "value": 37,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 37,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789257600,
+          "date": "Sep 13, 2026",
+          "value": 36,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 36,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789344000,
+          "date": "Sep 14, 2026",
+          "value": 59,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 59,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 3,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789430400,
+          "date": "Sep 15, 2026",
+          "value": 62,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 62,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 3,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789516800,
+          "date": "Sep 16, 2026",
+          "value": 63,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 63,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 3,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789603200,
+          "date": "Sep 17, 2026",
+          "value": 68,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 68,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 4,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789689600,
+          "date": "Sep 18, 2026",
+          "value": 60,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 60,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789776000,
+          "date": "Sep 19, 2026",
+          "value": 80,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 80,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 5,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789862400,
+          "date": "Sep 20, 2026",
+          "value": 85,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 85,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 8,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1789948800,
+          "date": "Sep 21, 2026",
+          "value": 93,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 93,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 6,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790035200,
+          "date": "Sep 22, 2026",
+          "value": 66,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 66,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 3,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790121600,
+          "date": "Sep 23, 2026",
+          "value": 65,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 65,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790208000,
+          "date": "Sep 24, 2026",
+          "value": 63,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 63,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790294400,
+          "date": "Sep 25, 2026",
+          "value": 50,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 50,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790380800,
+          "date": "Sep 26, 2026",
+          "value": 43,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 43,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790467200,
+          "date": "Sep 27, 2026",
+          "value": 42,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 42,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790553600,
+          "date": "Sep 28, 2026",
+          "value": 60,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 60,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790640000,
+          "date": "Sep 29, 2026",
+          "value": 62,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 62,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790726400,
+          "date": "Sep 30, 2026",
+          "value": 59,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 59,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 2,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790812800,
+          "date": "Oct 1, 2026",
+          "value": 53,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 53,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790899200,
+          "date": "Oct 2, 2026",
+          "value": 49,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 49,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1790985600,
+          "date": "Oct 3, 2026",
+          "value": 42,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 42,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791072000,
+          "date": "Oct 4, 2026",
+          "value": 38,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 38,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791158400,
+          "date": "Oct 5, 2026",
+          "value": 54,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 54,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791244800,
+          "date": "Oct 6, 2026",
+          "value": 56,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 56,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791331200,
+          "date": "Oct 7, 2026",
+          "value": 58,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 58,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791417600,
+          "date": "Oct 8, 2026",
+          "value": 60,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 60,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791504000,
+          "date": "Oct 9, 2026",
+          "value": 56,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 56,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791590400,
+          "date": "Oct 10, 2026",
+          "value": 46,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 46,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791676800,
+          "date": "Oct 11, 2026",
+          "value": 43,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 43,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791763200,
+          "date": "Oct 12, 2026",
+          "value": 57,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 57,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791849600,
+          "date": "Oct 13, 2026",
+          "value": 61,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 61,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1791936000,
+          "date": "Oct 14, 2026",
+          "value": 60,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 60,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1792022400,
+          "date": "Oct 15, 2026",
+          "value": 61,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 61,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        },
+        {
+          "timestamp": 1792108800,
+          "date": "Oct 16, 2026",
+          "value": 62,
+          "values": [
+            {
+              "query": "claude code",
+              "query_index": 0,
+              "value": 62,
+              "has_data": true
+            },
+            {
+              "query": "gpts",
+              "query_index": 1,
+              "value": 1,
+              "has_data": true
+            }
+          ]
+        }
+      ],
+      "averages": [
+        {
+          "query": "claude code",
+          "query_index": 0,
+          "value": 62
+        },
+        {
+          "query": "gpts",
+          "query_index": 1,
+          "value": 2
+        }
+      ]
+    },
+    "response_time_ms": 351
+  },
+  "related": {
+    "search_parameters": {
+      "keyword": "claude code",
+      "geo": "US",
+      "hl": "en",
+      "search_type": "web"
+    },
+    "related_queries": [
+      {
+        "query": "claude vs claude code",
+        "value": 100,
+        "formatted_value": "100"
+      },
+      {
+        "query": "vs code",
+        "value": 99,
+        "formatted_value": "99"
+      },
+      {
+        "query": "claude code ai",
+        "value": 73,
+        "formatted_value": "73"
+      },
+      {
+        "query": "claude ai",
+        "value": 72,
+        "formatted_value": "72"
+      },
+      {
+        "query": "what is claude code",
+        "value": 63,
+        "formatted_value": "63"
+      },
+      {
+        "query": "codex",
+        "value": 59,
+        "formatted_value": "59"
+      },
+      {
+        "query": "claude code github",
+        "value": 43,
+        "formatted_value": "43"
+      },
+      {
+        "query": "github",
+        "value": 43,
+        "formatted_value": "43"
+      },
+      {
+        "query": "install claude",
+        "value": 42,
+        "formatted_value": "42"
+      },
+      {
+        "query": "install claude code",
+        "value": 42,
+        "formatted_value": "42"
+      },
+      {
+        "query": "claude code install",
+        "value": 41,
+        "formatted_value": "41"
+      },
+      {
+        "query": "claude code cli",
+        "value": 40,
+        "formatted_value": "40"
+      },
+      {
+        "query": "claude cli",
+        "value": 39,
+        "formatted_value": "39"
+      },
+      {
+        "query": "claude code app",
+        "value": 36,
+        "formatted_value": "36"
+      },
+      {
+        "query": "how to use claude code",
+        "value": 34,
+        "formatted_value": "34"
+      },
+      {
+        "query": "claude code desktop",
+        "value": 32,
+        "formatted_value": "32"
+      },
+      {
+        "query": "claude code free",
+        "value": 32,
+        "formatted_value": "32"
+      },
+      {
+        "query": "claude desktop",
+        "value": 32,
+        "formatted_value": "32"
+      },
+      {
+        "query": "claude code terminal",
+        "value": 29,
+        "formatted_value": "29"
+      },
+      {
+        "query": "codex vs claude code",
+        "value": 27,
+        "formatted_value": "27"
+      },
+      {
+        "query": "claude api",
+        "value": 25,
+        "formatted_value": "25"
+      },
+      {
+        "query": "claude code api",
+        "value": 25,
+        "formatted_value": "25"
+      },
+      {
+        "query": "anthropic",
+        "value": 25,
+        "formatted_value": "25"
+      },
+      {
+        "query": "claude pro",
+        "value": 24,
+        "formatted_value": "24"
+      },
+      {
+        "query": "claude code mac",
+        "value": 23,
+        "formatted_value": "23"
+      }
+    ],
+    "related_topics": [],
+    "response_time_ms": 1116
+  }
+}

@@ -26,17 +26,17 @@
 
 | 信号 | 抓什么 | 需要 | 花费 |
 |---|---|---|---|
-| ① X | 你关注的账号里，60 天内第一次出现的名字 | AIsa key | 每个账号每次 $0.003 |
+| ① X | 你关注的账号里，60 天内第一次出现的名字 | Twitter AIO key（Scrappa 备选） | 按 AIO 套餐计费，未计入报告估算 |
 | ① Hugging Face | 新进热门榜前 50 的模型；量化版、微调版归到同一个基础名下 | 无 | 免费 |
 | ② GitHub 爆发 | 创建不到 14 天、平均每天涨 200 星以上，或比昨天多 400 星的仓库；附带大家实际会搜的写法（「niko strata」） | 无（有 GitHub token 限额更高） | 免费 |
 | ③ 竞品 sitemap | 某个站新增的几个网址共用、而它的旧网址里很少出现的词 | 你列出的 sitemap | 免费 |
 | ③ 新站 | 近 90 天注册且首次被收录、已经有 20 个以上排名词的域名 | AIsa key | 每个查询约 $0.13，每周一次 |
 | ④ Search Console | 你的站第一次获得曝光的查询词（用新鲜数据） | 你自己的 Google 授权 | 免费 |
-| ⑤ 复盘 | 每条线索 14 天后去 Google Trends 核对，和它自己的基线比；按信号统计命中率和提前天数 | AIsa key | 每个搜索写法 $0.0012 |
-| 新词表 | 针对当天的新名字:找出它背后的通用搜索词(大家拿这个新东西做什么),逐个估算规模并给出决策 | AIsa key；[GoAnyAPI](https://goanyapi.com) key 可选 | 5 个名字约每天 $0.15，加上 GoAnyAPI 约 $0.22 |
+| ⑤ 复盘 | 每条线索 14 天后去 Google Trends 核对，和它自己的基线比；按信号统计命中率和提前天数 | Scrappa key | 按 Starter 单价估算，未扣免费额度 |
+| 新词表 | 针对当天的新名字:找出它背后的通用搜索词(大家拿这个新东西做什么),逐个估算规模并给出决策 | Twitter AIO、AIsa、Scrappa key；[GoAnyAPI](https://goanyapi.com) 可选 | 各接口用量及 AIO 套餐，见费用文档 |
 | 名字判断 | 小模型给每个词打分：是某个具体东西的名字，还是普通词？ | AIsa key | 每次不到一美分 |
 
-价格是 2026 年 10 月 AIsa 的实际收费。按示例配置（35 个 X 账号、每天读三次，新词表每天读 5 个名字），一个月约 $15：读 X 约 $10，新词表约 $5。少读几个账号或者每天只读一次，费用按比例下降。
+AIsa X 每次 $0.003 是备选接口计费；默认 X 使用 Twitter AIO 套餐，其单价与额度尚未核实，报告不计入这部分费用。各来源费用与统计边界见 [.devguide/costs.md](.devguide/costs.md)。
 
 ## 新词表
 
@@ -52,7 +52,7 @@
 
 （2026-10-12 一次真实运行的节选）
 
-它是怎么做出来的（`radar/usecases.py`）：
+它是怎么做出来的（`src/usecases.ts`）：
 
 1. **取证**：搜提到这个名字的高赞帖子（X 高级搜索）；如果是仓库，再读它的 README。
 2. **提词**：模型读完证据，针对它看到的每一种用法，写出普通人会搜的关键词，并附上原话作依据。借别的产品名字的写法（「photoshop alternative」）会保留并标 ⚠：需求常常挂在老牌产品上，要不要用别人的品牌由你判断。
@@ -83,18 +83,22 @@
 |---|---|---|
 | 没配 `GOANYAPI_API_KEY`（默认就是这样） | 没有 🔎 行、没有名字的长尾、没有「一起被搜的其他名字」、没有 `(US)` 走势。通用词只来自模型，走势全部读全球数据，真实的上涨可能被读成「没动」 | 「相关查询未开启：设置 GOANYAPI_API_KEY 后…」 |
 | GoAnyAPI 的 Trends 挂了（接入第一天 2026-10-12 就遇到过） | 这一次运行等同于没配 key | 「相关查询失败：…」和「国家数据获取失败，已退回全球数据：…」 |
-| 某个名字的 AIsa 推文搜索失败（2026-10-13 遇到两次超时） | 这个名字的推文证据。仓库还有 README 可用；没有 README 的模型或产品就只剩相关查询，如果又没配 GoAnyAPI，这一天它就没有通用词 | 「推文搜索失败，这次只用了 README 和相关查询：…」 |
+| 某个名字的当前 X 推文搜索失败（2026-10-13 遇到两次超时） | 这个名字的推文证据。仓库还有 README 可用；没有 README 的模型或产品就只剩相关查询，如果又没配 GoAnyAPI，这一天它就没有通用词 | 「推文搜索失败，这次只用了 README 和相关查询：…」 |
 | 某个名字既没有推文也没有 README | 它的通用词；名字自己那一行还在 | 「没找到帖子或 README：…」 |
 | 当天没有名字得分 0.8 以上的「东西」类线索 | 整张表 | 「今天没有要读的名字…」 |
-| AIsa 的搜索量或 Trends 查询失败 | 整张表：这两项没有替代来源 | 表的位置直接显示报错 |
+| AIsa 搜索量或 Scrappa Trends 查询失败 | 整张表：这两项没有替代来源 | 表的位置直接显示报错 |
 
 表变薄不等于今天没动静。下结论说「什么都没涨」之前，先看表下面这几行。
 
 把配置写成 `"usecases": {"per_day": 0}`，或者加 `--skip usecases`，可以关掉它。
 
-## 一个必需的 key，一个可选的
+## 数据源与密钥
 
-所有付费的部分都走 [AIsa](https://go.aisa.one/yansen-zhu)：X 帖子、Google Trends 和域名数据（背后是 DataForSEO）、判断名字的模型。一个 key，按次付费，不用分别订阅 X API 和 DataForSEO。
+账号推文和全站高赞搜索默认使用 Twitter AIO，设置 `TWITTER_AIO_RAPIDAPI_KEY` 或 `~/.twitter-aio/key`。原实现保留：`X_TIMELINE_PROVIDER=scrappa` 切换账号采集，`X_SEARCH_PROVIDER=aisa` 切换搜索；两项独立选择，失败不自动调用另一家收费接口。搜索在本地核验正文、日期、点赞与回复，最多 5 页，取得 12 条合格证据即可停止。报告估算不含 AIO 套餐费用。
+
+全球 Trends 使用 [Scrappa MCP](https://scrappa.co/docs/mcp-integration)，需要 `SCRAPPA_API_KEY`。[AIsa](https://go.aisa.one/yansen-zhu) 负责 Google Ads 搜索量、域名数据、模型及备选 X 搜索，需要 `AISA_API_KEY`。凭据和切换细节见 [.devguide/twitter-aio.md](.devguide/twitter-aio.md)。
+
+相关查询保留 GoAnyAPI：其响应明确区分 `top` 和 `rising`。代码优先 rising、再补 top，其中其他新产品名只有来自 rising 才成为新线索。Scrappa 实测只有未分类相关词，不能替代 rising。
 
 > 上面是推荐链接：通过它注册是对这个项目的支持。从 aisa.one 任何入口拿到的 key 用起来完全一样。
 
@@ -104,14 +108,18 @@
 
 ## 快速开始
 
-需要 Python 3.10 或更高版本。雷达本身只用标准库。
+需要 Node.js 22+ 与 pnpm 10.33.0，运行依赖包含官方 TypeScript MCP SDK v1。
 
 ```bash
 git clone https://github.com/zhuyansen/new-term-radar
 cd new-term-radar
 cp config.example.json config.json      # 然后编辑：你的 X 账号、sitemap、主题；想要中文报告把 lang 改成 "zh"
+pnpm install --frozen-lockfile
+pnpm build
+export SCRAPPA_API_KEY=...              # 从 https://scrappa.co 获取
+export TWITTER_AIO_RAPIDAPI_KEY=...    # 或 ~/.twitter-aio/key
 export AISA_API_KEY=...                 # 从 https://go.aisa.one/yansen-zhu 获取；用 AIsa 命令行 `aisa login` 登录过也可以
-python -m radar daily --out report.md
+pnpm radar daily --out report.md
 ```
 
 第一次运行只是建立快照：昨天的 X 词表、星数、sitemap 网址都还没有，所以只会报出 GitHub 爆发仓库（它不依赖昨天的数据）。从第二次运行起，每个信号都会报告变化。
@@ -119,11 +127,11 @@ python -m radar daily --out report.md
 两个命令：
 
 ```bash
-python -m radar sources --out sources.md           # 只跑 ①：X 和 Hugging Face，每隔几小时跑一次
-python -m radar daily --skip x,hf --out report.md  # 其余全部，每天一次
+pnpm radar sources --out sources.md           # 只跑 ①：X 和 Hugging Face，每隔几小时跑一次
+pnpm radar daily --skip x,hf --out report.md  # 其余全部，每天一次
 ```
 
-`sources` 只在有新名字时才写报告。`daily` 带 `--skip x,hf` 时，会列出 `sources` 在过去 24 小时记下的线索。如果你每天只跑一次，直接用 `python -m radar daily`，什么都不跳过。
+`sources` 只在有新名字时才写报告。`daily` 带 `--skip x,hf` 时，会列出 `sources` 在过去 24 小时记下的线索。如果你每天只跑一次，直接用 `pnpm radar daily`，什么都不跳过。
 
 其他参数：`--skip` 可选 `x,hf,breakout,sitemaps,newsites,gsc,review,judge,usecases`；`--new-sites` 让每周信号今天就跑；`--mail` 发邮件（见下）；`--state DIR` 指定数据库和快照的目录。
 
@@ -170,15 +178,14 @@ python -m radar daily --skip x,hf --out report.md  # 其余全部，每天一次
 ### Search Console（可选）
 
 ```bash
-pip install google-auth-oauthlib
-python scripts/gsc_auth.py gsc_client.json   # 打开一次浏览器授权，写出 gsc_token.json
+pnpm gsc-auth gsc_client.json   # 打开输出的授权地址，写出 gsc_token.json
 ```
 
 `gsc_client.json` 是 Google Cloud Console 里类型为「桌面应用」的 OAuth 客户端，所在项目要启用 Search Console API。然后设置 `"gsc": {"site": "sc-domain:你的域名"}`。授权是只读的，凭证只留在你自己的机器上，`.gitignore` 已经把它排除了。
 
 ### 邮件（可选）
 
-`--mail` 通过 [Resend](https://resend.com) 发送报告。设置 `RESEND_API_KEY`、`EMAIL_FROM`（你在 Resend 验证过的域名下的地址）和 `RADAR_EMAIL_TO`（多个用逗号分隔）。要 HTML 版需要 `pip install markdown`。
+`--mail` 通过 [Resend](https://resend.com) 发送报告。设置 `RESEND_API_KEY`、`EMAIL_FROM`（你在 Resend 验证过的域名下的地址）和 `RADAR_EMAIL_TO`（多个用逗号分隔）。HTML 渲染已内置 `marked`。
 
 ## 在 agent 里用：skill 和 MCP 服务器
 
@@ -210,16 +217,19 @@ npx skills add zhuyansen/new-term-radar
 给支持 MCP 的客户端用（Claude Code、Cursor、Claude Desktop）：
 
 ```bash
-pip install "new-term-radar[mcp] @ git+https://github.com/zhuyansen/new-term-radar"
+pnpm install --frozen-lockfile
+pnpm build
 ```
 
 ```json
 {
   "mcpServers": {
     "new-term-radar": {
-      "command": "new-term-radar-mcp",
+      "command": "node",
+      "args": ["/absolute/path/new-term-radar/dist/src/cli.js", "mcp"],
       "env": {
         "AISA_API_KEY": "...",
+        "SCRAPPA_API_KEY": "...",
         "RADAR_CONFIG": "/绝对路径/config.json",
         "RADAR_STATE": "/绝对路径/state"
       }
@@ -234,7 +244,7 @@ pip install "new-term-radar[mcp] @ git+https://github.com/zhuyansen/new-term-rad
 | `keyword_table` | 你给的名字的新词表 | 每个名字约 $0.05，每次调用另加 $0.09；每个名字 40 到 90 秒 |
 | `run_radar` | 跑一次 `sources` 或 `daily`，返回报告 | 付费，要几分钟。只适合第一次试用，定时运行应该交给 cron 或 Actions |
 
-把 `RADAR_STATE` 指向定时任务写入的那个目录，`recent_leads` 看到的就是定时任务记下的线索。同样的两个功能在命令行里也有：`python -m radar keywords "名字" …` 和 `python -m radar leads`。
+把 `RADAR_STATE` 指向定时任务写入的那个目录，`recent_leads` 看到的就是定时任务记下的线索。同样的两个功能在命令行里也有：`pnpm radar keywords "名字" …` 和 `pnpm radar leads`。
 
 ## 在 GitHub Actions 上跑
 
@@ -242,15 +252,15 @@ pip install "new-term-radar[mcp] @ git+https://github.com/zhuyansen/new-term-rad
 
 1. Fork 这个仓库（私有 fork 也可以）。
 2. 把 `config.json` 从 `.gitignore` 里删掉，提交你的配置。配置里没有任何密钥。
-3. 添加 secret `AISA_API_KEY`；可选 `GOANYAPI_API_KEY`、`RESEND_API_KEY`、`EMAIL_FROM`、`RADAR_EMAIL_TO`、`GSC_TOKEN_JSON`。
+3. 添加 secrets `AISA_API_KEY` 和 `SCRAPPA_API_KEY`；可选 `GOANYAPI_API_KEY`、`RESEND_API_KEY`、`EMAIL_FROM`、`RADAR_EMAIL_TO`、`GSC_TOKEN_JSON`。
 4. 把仓库变量 `RADAR_ENABLED` 设为 `true`。
 
 ## 各部分怎么判断
 
-- **帖子里的名字**（`radar/terms.py`）：首字母大写的词、带数字的词（`Qwen3.8`）、中间有大写的词（`HyperFrames`）；名字后面的数字会并进去（`Opus 5.5`）。两个账号都用过的名字算数；只有一个账号用的，需要 100 个赞，而且必须明显是名字，因为首字母大写的词常常只是句子开头。
+- **帖子里的名字**（`src/terms.ts`）：首字母大写的词、带数字的词（`Qwen3.8`）、中间有大写的词（`HyperFrames`）；名字后面的数字会并进去（`Opus 5.5`）。两个账号都用过的名字算数；只有一个账号用的，需要 100 个赞，而且必须明显是名字，因为首字母大写的词常常只是句子开头。
 - **sitemap 里的上升词**：按不同网址计数，并和这个站自己的基线比，所以一个长网址造不出一波假信号。
-- **名字判断**（`radar/judge.py`）：每 25 个词一次模型调用，每个词附带最多三处出现的原文。调用失败时报告照常发出，只是不排序。
-- **复盘**（`radar/review.py`）：一个搜索写法在我们报出之后的峰值，超过它自己之前基线的 2 倍且高出 10 点，才算「涨了」。有旧含义的词（「strata」：岩层、分契式产权）基线本来就高，不算；「niko1221 strata」从 0 涨起来才算。Trends 没结算的最后两天不计入。
+- **名字判断**（`src/judge.ts`）：每 25 个词一次模型调用，每个词附带最多三处出现的原文。调用失败时报告照常发出，只是不排序。
+- **复盘**（`src/review.ts`）：一个搜索写法在我们报出之后的峰值，超过它自己之前基线的 2 倍且高出 10 点，才算「涨了」。有旧含义的词（「strata」：岩层、分契式产权）基线本来就高，不算；「niko1221 strata」从 0 涨起来才算。Trends 没结算的最后两天不计入。
 
 ## 实测过什么，没测过什么
 
@@ -267,8 +277,7 @@ pip install "new-term-radar[mcp] @ git+https://github.com/zhuyansen/new-term-rad
 ## 开发
 
 ```bash
-pip install pytest markdown
-python -m pytest -q tests
+pnpm check
 ```
 
 测试覆盖逻辑部分（名字提取、打分、存储、报告），不访问网络。
@@ -278,7 +287,7 @@ python -m pytest -q tests
 - [子木 @CoderJeffLee](https://x.com/CoderJeffLee)：新词表的想法来自他的建议，新名字和它下游的通用词应该放在同一张表里，每行给出决策。
 - [饭特稀 | Fentix @fantexi997](https://x.com/fantexi997)：[GoAnyAPI](https://goanyapi.com)，相关查询和单个国家 Trends 走势这个可选数据源。
 
-流程图由 `docs/make_diagram.py` 生成（需要 `rsvg-convert` 和 `ffmpeg`）。
+流程图由 `scripts/make-diagram.ts`（`pnpm diagram`） 生成（需要 `rsvg-convert` 和 `ffmpeg`）。
 
 ## 许可
 

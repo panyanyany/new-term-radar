@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "new-term-radar": {
+      "command": "node",
+      "args": ["/absolute/path/new-term-radar/dist/src/cli.js", "mcp"],
+      "env": {
+        "RADAR_CONFIG": "/absolute/path/new-term-radar/config.json",
+        "RADAR_STATE": "/absolute/path/new-term-radar/state"
+      }
+    }
+  }
+}
