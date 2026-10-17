@@ -16,12 +16,14 @@ new-term-radar/
 ├── .env                         本机通知凭据，未跟踪
 ├── .devguide/
 │   ├── structure.md             文件树与职责
+│   ├── pages.md                 网页监控、锚文本选择、候选词与基线
 │   ├── local-setup.md           Node/pnpm 环境、配置、凭据、命令
 │   ├── architecture.md         个人实验定位、现有模块与运行限制
 │   ├── typescript.md            类型边界、ESM、状态兼容、舍入与分发
 │   ├── scheduling.md            本机 cron、最小环境与 Actions
 │   ├── notify.md                Telegram/飞书摘要与邮件通道
 │   ├── twitter-aio.md           X 默认数据源、凭据、备选路由与过滤契约
+│   ├── trends.md                根词发现、曲线有限重查、分类、缓存及诊断
 │   ├── scrappa.md               MCP 接入、分页、Trends 与 rising 边界
 │   ├── costs.md                 数据接口价格、额度与成本估算
 │   └── known-issues.md          上游错误和搜索量/相关查询边界
@@ -43,22 +45,38 @@ new-term-radar/
 │   ├── defaults.json            各模块默认配置
 │   ├── messages.json            中英文报告文案
 │   ├── prompts.json             模型提示词、停用词和邮件内联样式
-│   ├── cli.ts                   daily/sources/keywords/leads/mcp 编排
+│   ├── cli.ts                   daily/sources/keywords/leads/costs/mcp 编排
 │   ├── mcp-server.ts            recent_leads/keyword_table/run_radar 工具
+│   ├── usage.ts                 SQLite 请求明细、运行/模块范围、统计及费用分布表
+│   ├── model-costs.ts           DeepSeek 用户单价/OpenRouter 快照、token 计价及独立调用范围
 │   ├── x.ts                     X 按用途路由、显式备选、统一高赞搜索过滤
 │   ├── twitter-aio.ts           RapidAPI 传输、推文解析、时间线及搜索游标
-│   ├── aisa.ts                  X 全站搜索、Google Ads、WHOIS、chat
-│   ├── scrappa.ts               MCP 账号推文分页、90 天全球 Trends
+│   ├── aisa.ts                  X 全站搜索备选、WHOIS、chat 与工具路由
+│   ├── scrappa.ts               Google 搜索 REST、MCP 账号推文分页及全球 Trends
 │   ├── goanyapi.ts              可选相关查询与单国日序列
 │   ├── sources.ts               X 新名称、HF trending 新模型及名称清洗
 │   ├── breakout.ts              GitHub 星数增长、爆发与搜索变体
+│   ├── page-keywords.ts         大模型标题核心词组与解释、输出校验和 SQLite 缓存
+│   ├── pages.ts                 Cheerio 页面链接汇总、候选词、曾见 URL 快照
 │   ├── sitemaps.ts              XML/gzip sitemap 抓取、新页面激增词
 │   ├── new-sites.ts             周频 WHOIS、ETV/排名词新域名信号
 │   ├── gsc.ts                   Search Console 授权刷新与新展现查询
 │   ├── judge.ts                 模型名称评分及输出校验
 │   ├── terms.ts                 名称提取、词项、按独立来源统计激增
-│   ├── usecases.ts              取证、提词、筛选、量级/趋势与优先级
+│   ├── trends-roots.ts          根词 Rising、首次发现回调与筛选/搜索/分类编排
+│   ├── trends-config.ts         根词配置默认值、Zod 校验与请求数量限制
+│   ├── trends-filter.ts         七天小时曲线、从零上涨与超大曲线有限重查
+│   ├── candidate-kind.ts        线上游戏/在线工具分类、证据引用及放行校验
+│   ├── term-observations.ts     原始发现时间、本地词键和只追加发现记录
+│   ├── trends-explanations.ts   Trends 解释的证据/模型/版本状态缓存
+│   ├── source-errors.ts         上游预期错误、程序错误及 stderr 堆栈诊断
+│   ├── trend-measure.ts         日曲线形状、搜索量比值及研究判断纯计算
+│   ├── trends-series.ts         既有九十天参考词批量比较请求
+│   ├── cost-report.ts           费用合计和账本分布展示
+│   ├── keyword-report.ts        关键词研究 Markdown 表格与字段格式化
+│   ├── usecases.ts              Google/README 取证、X 显式备选、提词筛选与批量估量
 │   ├── review.ts                到期线索 Trends 复盘与命中判定
+│   ├── brief-report.ts          三段日报、精确首次发现、历史词与一句话解释
 │   ├── report.ts                合并线索、双语 Markdown 与关键词表
 │   ├── store.ts                 SQLite 线索、命中率与复盘状态
 │   └── notify.ts                Resend 邮件与 Markdown HTML
@@ -71,10 +89,22 @@ new-term-radar/
 │   ├── ai-listening/SKILL.md     新名称线索收集
 │   └── seo-new-keywords-research/SKILL.md  指定名称关键词研究
 ├── tests/
+│   ├── source-errors.test.ts      上游错误分类、程序异常传播、历史导入和部分费用展示
 │   ├── parity.test.ts           固定旧实现基准：曲线、名称、双语报告
+│   ├── trends-roots.test.ts       Rising 契约、类目与筛选阶段边界
+│   ├── trends-filter.test.ts      零基线、超大曲线有限重查、失败和费用
+│   ├── candidate-kind.test.ts     类别放行、证据引用及非法输出拒绝
+│   ├── trends-config.test.ts      配置默认值、重复项与请求上限
+│   ├── trends-cache.test.ts       解释状态、证据/模型/版本失效与旧来源隔离
+│   ├── trends-maintenance.test.ts 外部接口模拟下的完整内部流程及首次发现
+│   ├── brief-report.test.ts     24 小时边界、重跑去重、费用隔离与解释降级
+│   ├── page-keywords.test.ts    模型提词校验、缓存复用、历史词修正与首次发现保留
+│   ├── pages.test.ts            重复锚文本、URL 回退、首次基线、失败保护和重现去重
 │   ├── radar.test.ts            SQLite、快照、信号、CLI、邮件纯逻辑
 │   ├── twitter-aio.test.ts      时间线/搜索契约、词表保护和备选路由
 │   ├── scrappa.test.ts          真样本契约、SDK mock、分页及错误保护
+│   ├── usage.test.ts            持久化记账、失败/重试、并发隔离、费用汇总与 CLI
+│   ├── model-costs.test.ts      模型费用、缓存输入、并行隔离、缺失用量和摘要
 │   ├── pipeline.test.ts         模拟付费接口的完整关键词管线和状态保护
 │   ├── mcp.test.ts              官方 SDK 与真实 stdio 子进程集成
 │   └── fixtures/

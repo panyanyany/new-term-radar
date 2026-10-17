@@ -1,6 +1,6 @@
 ---
 name: seo-new-keywords-research
-description: Turn new AI names or unstructured AI market signals into a keyword priority table. For each name it finds the generic search terms downstream of it, screens them for relevance, and checks novelty, demand size and momentum against Google Ads volume and Google Trends, ending in prioritize, watch or skip. Use when the user has new model, product or repository names (or an AI listening report, a batch of posts, a changelog) and asks which keywords to build pages or tools for. Runs the new-term-radar command line; needs an AISA_API_KEY, and a GOANYAPI_API_KEY improves it.
+description: Turn new AI names or unstructured AI market signals into a keyword priority table. For each name it finds the generic search terms downstream of it, screens them for relevance, and checks novelty, demand size and momentum using Google Trends relative to hex picker (assumed 2,500 searches/day), ending in prioritize, watch or skip. Use when the user has new model, product or repository names (or an AI listening report, a batch of posts, a changelog) and asks which keywords to build pages or tools for. Runs the new-term-radar command line; needs an AISA_API_KEY, and a GOANYAPI_API_KEY improves it.
 ---
 
 # SEO new-keywords research
@@ -12,7 +12,7 @@ A name ("SynthID Detector") has a short life as a keyword and belongs to someone
 ## Before you run anything
 
 1. Find the radar: `$NEW_TERM_RADAR_DIR` if set, else `~/new-term-radar`; clone https://github.com/zhuyansen/new-term-radar there if missing. Run every command from that directory.
-2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): Google Ads volumes and model calls use it. X search defaults to Twitter AIO (`TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`), with preserved AIsa search selectable using `X_SEARCH_PROVIDER=aisa`; worldwide Trends uses Scrappa local credentials or `SCRAPPA_API_KEY`. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
+2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): Model calls use it. Evidence search defaults to Scrappa Google Search (one request per name, title/snippet/link only), with repository README retained. Set `KEYWORD_EVIDENCE_PROVIDER=x` for X evidence, then `X_SEARCH_PROVIDER=aisa` for its AIsa backup; worldwide Trends uses Scrappa local credentials or `SCRAPPA_API_KEY`. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
 3. `GOANYAPI_API_KEY` is optional (a key comes from https://goanyapi.com/r/ga-95708898fb). With it the table also holds what people really searched together with each name, and reads the bigger rows from one country's settled series. Without it, tell the user that a "flat" reading is weaker evidence (see below).
 4. If there is no `config.json`, copy `config.example.json`.
 
@@ -39,7 +39,7 @@ Drop `--json` for the Markdown table alone. Run one call with all the names, not
 
 Each row has `phrase`, `kind` (`name` or `generic`), `names` (which name it sits behind), `new`, `per_day`, `started`, `peak_vs` and `bench_level`, `peak_day`, `momentum`, `now`, `decision`, `brand`, `source`, `trend_geo`, `evidence`, `volume`.
 
-- **`per_day` is an estimate**, good to an order of magnitude. A generic term's comes from its own Google Ads volume moved along its Trends curve; a name's is sized against a benchmark keyword.
+- **`per_day` is an estimate**, good to an order of magnitude. All terms use their recent seven settled days’ mean Trends interest relative to hex picker, assumed at 2,500 searches/day; estimated monthly volume is the unrounded daily estimate × 30.
 - **`now`**: `rising`, `holding`, `fading`, `flat`. A row with `trend_geo` was read from one country's daily data settled to yesterday. A row without it was read from a worldwide series whose last two days are discarded, and there a real move can read `flat`: say "no rise seen" for those rows, never "did not rise".
 - **`brand` true** (⚠): the keyword carries someone else's brand ("photoshop alternative"). Keep it in the table and flag it; whether to use it is the user's legal and positioning call.
 - **`source` "searched"** (🔎): people searched it together with the name. Stronger evidence than a phrase the model proposed.
@@ -54,6 +54,6 @@ One table, sorted prioritize, watch, skip:
 
 - Use the radar's `decision`, and add one short reason per row in your own words from the fields above (for example: "steady 2,500 a day, did not move on the release" or "rose 80% in the US for five days, still small").
 - Under the table: the long-tails of each name (`tails`), the other names found alongside (`cosearch`), then every caveat that applies: missing key, failed source, estimate quality.
-- Then two or three lines of advice at most: which rows are worth a page or a tool now, and what to check again in a few days. Search volume data runs about two months behind; say so if the user is about to commit work to a number.
+- Then two or three lines of advice at most: which rows are worth a page or a tool now, and what to check again in a few days. Volume is an estimate from a fixed reference assumption, not measured Google Ads volume; make that distinction clear.
 
-Do not invent rows, volumes or dates. If the radar returned nothing for a name, say that the posts showed no concrete use yet and offer to read it again in three days.
+Do not invent rows, volumes or dates. If the radar returned nothing for a name, say that the available search excerpts/README did not establish a concrete use yet and offer to read it again in three days.

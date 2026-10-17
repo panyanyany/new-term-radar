@@ -136,8 +136,8 @@
   "st_record": ["- saving leads: {state}", "- 记录候选词:{state}"],
   "st_judge": ["- name judge: {state}", "- 名字判断:{state}"],
   "cost": [
-    "- Data cost estimate this run: {cost} (excludes Twitter AIO subscription and model tokens; Scrappa at Starter rate before free credits)",
-    "- 本次数据成本估算:{cost}(不含 Twitter AIO 套餐及模型费用;Scrappa 按 Starter 单价且未扣免费额度)"
+    "- Total cost estimate this run: {cost} (Twitter AIO $0.0004/request; models at configured token rates; Scrappa at Starter rate before free credits)",
+    "- 本次总成本估算:{cost}(Twitter AIO 每请求 $0.0004;模型按配置的 token 单价;Scrappa 按 Starter 单价且未扣免费额度)"
   ],
   "kind_usecase": ["generic term", "通用词"],
   "note_usecase": [
@@ -246,5 +246,51 @@
   ],
   "posts_h": ["### The posts", "### 推文原文"],
   "post_link": [" · [post]({url})", " · [原推]({url})"],
-  "sources_quiet": ["① no new names: ", "① 没有新名字:"]
+  "sources_quiet": ["① no new names: ", "① 没有新名字:"],
+  "cost_unpriced": [
+    "- Cost estimate incomplete: {n} model calls lack token usage or a known model price.",
+    "- 费用估算不完整:{n} 次模型调用缺少 token 用量或已知模型单价。"
+  ],
+  "cost_unpriced_requests": [
+    "- Cost estimate incomplete: {n} API calls have unknown costs (including interrupted requests).",
+    "- 费用估算不完整:{n} 次接口调用费用未知(包含中断请求)。"
+  ],
+  "uc_intro_trends": [
+    "Read today: {names}. {proposed} generic phrases proposed, {relevant} passed relevance screening, {kept} estimated at least {min} searches/month using Trends (daily estimate × 30; not Google Ads volume).",
+    "今天读了:{names}。提出 {proposed} 个通用写法,{relevant} 个通过相关性筛选,其中 {kept} 个 Trends 估算月搜不低于 {min}(估算日搜 × 30,不是 Google Ads 月搜索量)。"
+  ],
+  "uc_bench_trends": [
+    "Estimated daily searches = recent 7 settled days’ mean keyword interest / mean interest for `{bench}` × {bench_daily}. The reference is a user-supplied estimate of searches/day, not measured volume; zero/missing reference interest leaves estimates blank.",
+    "估算日搜 = 最近 7 个稳定日期的关键词平均热度 ÷ `{bench}` 平均热度 × {bench_daily}。参考词每天约 {bench_daily} 次为用户提供的假设,不是实测搜索量;参考热度为零或缺失时留空。"
+  ],
+  "note_usecase_estimate": [
+    "generic term behind {names}: estimated {volume}/month from Trends",
+    "{names} 背后的通用词,Trends 估算月搜 {volume}"
+  ],
+  "uc_sources": [
+    "Sources (search excerpts / README)",
+    "资料来源(搜索摘要 / README)"
+  ],
+  "uc_google_err": [
+    "Google evidence search failed; available READMEs and optional related queries were retained: {why}",
+    "Google 资料搜索失败;保留可用 README 和可选相关查询:{why}"
+  ],
+  "uc_no_web_evidence": [
+    "No matching search excerpts or README found for: {names}.",
+    "未找到匹配的搜索摘要或 README:{names}。"
+  ],
+  "pages_h": ["## New pages · keyword candidates", "## 新增页面 · 候选词"],
+  "pages_cols": [
+    "| Site | Candidate | Basis | Page |",
+    "| 站点 | 候选词 | 提取依据 | 页面 |"
+  ],
+  "pages_unknown": ["Needs review", "待确认"],
+  "pages_anchor": ["Anchor text", "锚文本"],
+  "pages_url": ["URL slug", "URL 推断"],
+  "pages_link": ["Open", "查看"],
+  "pages_baseline": [
+    "Baseline: {n} links; no new alerts",
+    "首次建立基线：{n} 个链接，不报新"
+  ],
+  "pages_status": ["{n} links; {added} new", "{n} 个链接；新增 {added} 个"]
 }

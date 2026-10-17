@@ -2,7 +2,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { parse } from "dotenv";
+import { tracked } from "./usage.js";
 import { type Data } from "./core.js";
+
+// 用户确认的统一请求单价：$0.0004 = 400 micro-USD。
+export const REQUEST_COST_MICROS = 400;
 
 export class TwitterAioError extends Error {
   override name = "TwitterAioError";
@@ -39,34 +43,49 @@ export async function request(path: string, params: Data = {}): Promise<Data> {
     url = new URL(path, cfg.base);
   for (const [k, v] of Object.entries(params))
     url.searchParams.set(k, String(v));
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      headers: { "x-rapidapi-key": cfg.key, "x-rapidapi-host": cfg.host },
-      signal: AbortSignal.timeout(40000),
-    });
-  } catch {
-    throw new TwitterAioError(
-      "Twitter AIO request failed (no automatic retry)",
-    );
-  }
-  if (!response.ok)
-    throw new TwitterAioError(`Twitter AIO HTTP ${response.status}`);
-  let body: Data;
-  try {
-    body = await response.json();
-  } catch {
-    throw new TwitterAioError("Twitter AIO returned non-JSON content");
-  }
-  if (
-    !body ||
-    typeof body !== "object" ||
-    Array.isArray(body) ||
-    body.error ||
-    body.errors
-  )
-    throw new TwitterAioError("Twitter AIO returned an error response");
-  return body;
+  const endpoint = path.startsWith("/search/")
+    ? "/search/:query"
+    : path.startsWith("/user/by/username/")
+      ? "/user/by/username/:handle"
+      : "/user/:id/tweetsAndReplies";
+  return tracked(
+    { provider: "twitter-aio", endpoint },
+    async () => {
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          headers: { "x-rapidapi-key": cfg.key, "x-rapidapi-host": cfg.host },
+          signal: AbortSignal.timeout(40000),
+        });
+      } catch {
+        throw new TwitterAioError(
+          "Twitter AIO request failed (no automatic retry)",
+        );
+      }
+      if (!response.ok)
+        throw new TwitterAioError(`Twitter AIO HTTP ${response.status}`);
+      let body: Data;
+      try {
+        body = await response.json();
+      } catch {
+        throw new TwitterAioError("Twitter AIO returned non-JSON content");
+      }
+      if (
+        !body ||
+        typeof body !== "object" ||
+        Array.isArray(body) ||
+        body.error ||
+        body.errors
+      )
+        throw new TwitterAioError("Twitter AIO returned an error response");
+      return body;
+    },
+    () => ({
+      cost_micros: REQUEST_COST_MICROS,
+      pricing_source: "user confirmed request rate",
+      rates: { request_micros: REQUEST_COST_MICROS },
+    }),
+  );
 }
 // 优先使用长文正文；引用贴文保持嵌套，不冒充顶层搜索结果。
 export function tweet(raw: Data): Data | null {
@@ -196,7 +215,7 @@ export async function userPosts(
       (batch.tweets.length &&
         Date.parse(batch.tweets.at(-1)!.createdAt) < +now - 30 * 3600000)
     )
-      return [posts, 0];
+      return [posts, REQUEST_COST_MICROS * (page + 2)];
     if (!added || cursors.has(batch.cursor))
       throw new TwitterAioError(
         "tweet pagination stalled; vocabulary unchanged",

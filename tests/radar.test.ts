@@ -65,6 +65,7 @@ it("loading a new config replaces custom stop words while keeping built-ins", ()
 it("diff handles a 200,000 URL baseline and retains new-term counts", async () => {
   const c = cfg(),
     index = "https://example.test/sitemap.xml";
+  c.pages = {}; // 此用例仅验证 sitemap，网页抓取另有独立测试。
   c.sitemaps = { large: { index, pause: 0 } };
   const old = Array.from(
     { length: 200000 },
@@ -351,6 +352,7 @@ it("new names precede due second readings, manual selection excludes sitemap fra
       ["new", "old"],
       {
         old: { first: "2026-10-01", runs: 1 },
+        absent: { first: "2026-10-01", runs: 1 },
         twice: { first: "2026-10-01", runs: 2 },
       },
       "2026-10-16",
@@ -527,3 +529,38 @@ it("notification channels remain independent and Telegram uses multipart attachm
     "$0.123",
   );
 });
+
+// 私聊与群聊分别验证实际消息和附件，避免群聊泄漏费用。
+it.each(["123456", "-100123456", "@test_channel"])(
+  "notification costs follow recipient %s",
+  async (chat) => {
+    const { main: notifyMain } = await import("../scripts/notify-report.js");
+    const path = join(dir, "cost-report.md");
+    writeFileSync(
+      path,
+      "业务内容\n- 本次总成本估算:$0.1234\n- 本次 AIsa 数据花费:$0.100\n- 费用估算不完整:1 次\n\n| 费用来源 | 请求数 |\n|---|---:|\n| aisa | 2 |\n已计价合计 $0.1234；未计价 1 次\n",
+    );
+    vi.stubEnv("TELEGRAM_BOT_TOKEN", "unit-test-token");
+    vi.stubEnv("TELEGRAM_CHAT_ID", chat);
+    vi.stubEnv("FEISHU_GROUP_HOOK", "https://example.test/webhook");
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const fetch = vi
+      .fn()
+      .mockImplementation(async () => new Response('{"ok":true}'));
+    vi.stubGlobal("fetch", fetch);
+    expect(await notifyMain([path])).toBe(0);
+    const text = JSON.parse(fetch.mock.calls[0][1].body).text;
+    const attachment = await fetch.mock.calls[1][1].body.get("document").text();
+    const group = JSON.parse(fetch.mock.calls[2][1].body).content.text;
+    expect(group).not.toMatch(/成本|费用|\$/);
+    expect(attachment).toContain("业务内容");
+    if (chat === "123456") {
+      expect(text).toContain("$0.1234");
+      expect(attachment).toContain("费用来源");
+    } else {
+      expect(text).not.toMatch(/成本|费用|\$/);
+      expect(attachment).not.toMatch(/成本|费用|\$|aisa/);
+    }
+    expect(readFileSync(path, "utf8")).toContain("$0.1234");
+  },
+);

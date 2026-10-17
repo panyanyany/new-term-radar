@@ -1,15 +1,25 @@
+import { fetchSeries } from "./trends-series.js";
+export { fetchSeries } from "./trends-series.js";
+import { measure } from "./trend-measure.js";
+export {
+  WORLD,
+  COUNTRY,
+  shape,
+  ownPerDay,
+  benchDaily,
+  size,
+  decide,
+  measure,
+} from "./trend-measure.js";
+import { withModelCosts } from "./model-costs.js";
 import * as aisa from "./aisa.js";
 import { search } from "./x.js";
 import * as goany from "./goanyapi.js";
-import { trendsMany, type TrendRequest } from "./scrappa.js";
-import { settled } from "./review.js";
+import { googleSearch } from "./scrappa.js";
 import { get } from "./breakout.js";
 import {
   shift,
   today,
-  days,
-  mean,
-  median,
   round,
   unique,
   compact,
@@ -21,8 +31,6 @@ import {
   type Point,
 } from "./core.js";
 import prompts from "./prompts.json" with { type: "json" };
-export const WORLD = { unsettled: 2, window: 30, factor: 2, days: 2 },
-  COUNTRY = { unsettled: 0, window: 10, factor: 1.5, days: 3 };
 export function due(
   names: string[],
   seen: Record<string, Data>,
@@ -34,7 +42,10 @@ export function due(
     ...names.filter((n) => !(n in seen)),
     ...Object.keys(seen)
       .filter(
-        (n) => seen[n].runs === 1 && seen[n].first <= shift(day, -recheck),
+        (n) =>
+          names.includes(n) &&
+          seen[n].runs === 1 &&
+          seen[n].first <= shift(day, -recheck),
       )
       .sort((a, b) => seen[a].first.localeCompare(seen[b].first)),
   ]).slice(0, limit);
@@ -48,21 +59,27 @@ async function readme(repo: string): Promise<string> {
     return "";
   }
 }
-// 按名称独立检索，默认 Twitter AIO，AIsa 可显式切换作为备选。
+// 按名称独立检索；Google 摘要为默认，X 高赞证据仅显式选择。
 export async function evidence(
   names: string[],
   repos: Record<string, string>,
   day: string,
 ): Promise<[Record<string, Data>, number]> {
+  const provider = process.env.KEYWORD_EVIDENCE_PROVIDER?.trim() || "google";
+  if (!["google", "x"].includes(provider))
+    throw new Error("unsupported keyword evidence provider");
   const out: Record<string, Data> = {};
   let cost = 0;
   for (const n of names) {
     let error = "",
-      tweets: Data[] = [];
+      tweets: Data[] = [],
+      pages: Data[] = [];
     try {
-      const [rows, c] = await search(n, day);
+      const [rows, c] =
+        provider === "google" ? await googleSearch(n) : await search(n, day);
       cost += c;
-      tweets = rows;
+      if (provider === "google") pages = rows;
+      else tweets = rows;
     } catch (e) {
       error = compact(errorText(e).replace(/<[^>]+>/g, " ")).slice(0, 80);
     }
@@ -77,6 +94,8 @@ export async function evidence(
       .slice(0, 12);
     out[n] = {
       posts,
+      pages,
+      provider,
       readme: repos[n] ? await readme(repos[n]) : "",
       repo: repos[n] ?? "",
       error,
@@ -111,17 +130,27 @@ const postText = (posts: Data[]) =>
   posts
     .map((p) => `- (${p.likes} likes) @${p.by}: ${p.text.slice(0, 400)}`)
     .join("\n");
+// 搜索摘要是外部资料，不具有指令权限；给模型保留标题与可追溯链接。
+const evidenceText = (ev: Data) =>
+  [
+    ...(ev.pages ?? []).map(
+      (p: Data) => `- ${p.title}: ${p.text} (source: ${p.url})`,
+    ),
+    postText(ev.posts ?? []),
+  ]
+    .filter(Boolean)
+    .join("\n");
 export async function propose(
   model: string,
   name: string,
   ev: Data,
 ): Promise<Data[]> {
-  if (!ev.posts.length && !ev.readme) return [];
+  if (!ev.posts.length && !ev.pages?.length && !ev.readme) return [];
   return parse(
     await aisa.chat(
       model,
       prompts.propose,
-      `NAME: ${name}\n\nPOSTS:\n${postText(ev.posts) || "(none found)"}\n` +
+      `NAME: ${name}\n\nEVIDENCE:\n${evidenceText(ev) || "(none found)"}\n` +
         (ev.readme ? `\nREADME of ${ev.repo}:\n${ev.readme}\n` : ""),
       900,
     ),
@@ -164,7 +193,7 @@ export async function screen(
     const answer = await aisa.chat(
         model,
         prompts.screen,
-        `NAME: ${name}\n\nEVIDENCE:\n${postText(ev.posts.slice(0, 6)) || ev.readme.slice(0, 1200)}\n\nCANDIDATES:\n` +
+        `NAME: ${name}\n\nEVIDENCE:\n${[evidenceText(ev), ev.readme?.slice(0, 1200)].filter(Boolean).join("\n")}\n\nCANDIDATES:\n` +
           JSON.stringify(cands.map((c, i) => ({ i, keyword: c.phrase }))),
         600,
       ),
@@ -219,178 +248,6 @@ export function otherNames(
 }
 export const relevant = (cands: Data[]) =>
   cands.filter((c) => !c.is_name && (c.relevance ?? 1) >= 0.6);
-export async function volumes(
-  phrases: string[],
-  location_code: number,
-): Promise<[Record<string, Data>, number]> {
-  if (!phrases.length) return [{}, 0];
-  const [data, cost] = await aisa.call([
-      {
-        call_id: "vol",
-        tool: "post_dataforseo_keywords_gads_search_volume_live",
-        arguments: {
-          body: [{ keywords: phrases, location_code, language_code: "en" }],
-        },
-      },
-    ]),
-    out: Record<string, Data> = {};
-  for (const r of data.vol?.tasks?.[0]?.result ?? []) {
-    const m = r.monthly_searches?.[0];
-    out[r.keyword] = {
-      volume: Number(r.search_volume ?? 0),
-      month: m ? `${m.year}-${String(m.month).padStart(2, "0")}` : "",
-    };
-  }
-  return [out, cost];
-}
-// 先丢弃未稳定日期再归一化；连续上升区间从最新峰值向前回溯。
-export function shape(input: Point[], day: string, rule = WORLD): Data {
-  let points = input.filter((p) => p[0] < shift(day, -rule.unsettled));
-  const top = Math.max(0, ...points.map((p) => p[1]));
-  if (!top) return { no_data: true };
-  points = points.map(([d, v]) => [d, round((v * 100) / top)]);
-  const end = points.at(-1)![0],
-    start = shift(end, -rule.window),
-    base = mean(points.filter((p) => p[0] < start).map((p) => p[1])),
-    window = points.filter((p) => p[0] >= start),
-    [peak_day, peak] = [...window].sort(
-      (a, b) => b[1] - a[1] || b[0].localeCompare(a[0]),
-    )[0],
-    line = Math.max(base * rule.factor, base + 10),
-    above = window.filter((p) => p[1] >= line).map((p) => p[0]),
-    rose = above.length >= rule.days,
-    before = points.slice(-14, -7).map((p) => p[1]),
-    week = points.slice(-7).map((p) => p[1]),
-    out: Data = {
-      no_data: false,
-      base: round(base, 1),
-      peak,
-      peak_day,
-      rose,
-      new: rose && base < 10,
-      momentum:
-        before.length && mean(before) >= 5
-          ? round(mean(week) / mean(before), 1)
-          : null,
-    };
-  if (!rose) return { ...out, now: "flat" };
-  let started = peak_day;
-  while (above.includes(shift(started, -1))) started = shift(started, -1);
-  out.started = started;
-  const latest = Math.max(
-    ...window.filter((p) => p[0] > shift(end, -3)).map((p) => p[1]),
-  );
-  out.now =
-    days(end, peak_day) < 3
-      ? "rising"
-      : latest >= 0.5 * peak
-        ? "holding"
-        : "fading";
-  return out;
-}
-export function ownPerDay(
-  input: Point[],
-  volume: number,
-  month: string,
-  day: string,
-): number | null {
-  const points = settled(input, day),
-    anchor = mean(
-      points.filter((p) => p[0].startsWith(month)).map((p) => p[1]),
-    ),
-    recent = mean(points.slice(-7).map((p) => p[1]));
-  return anchor && volume ? round(((volume / 30) * recent) / anchor) : null;
-}
-export function benchDaily(rows: Data[]): number | null {
-  const found: number[] = [];
-  for (const r of rows) {
-    if (!r.month || (r.volume ?? 0) < 1000) continue;
-    const pair: Point[] = r._pair ?? [],
-      term = mean(
-        pair.filter((p) => p[0].startsWith(r.month)).map((p) => p[1]),
-      ),
-      bench = mean(
-        pair.filter((p) => p[0].startsWith(r.month)).map((p) => p[2]),
-      );
-    if (term && bench) found.push(((r.volume / 30) * bench) / term);
-  }
-  return median(found);
-}
-export function size(input: Point[], day: string, daily: number | null): Data {
-  const pair = settled(input, day),
-    level = mean(pair.map((p) => p[2]));
-  if (!level) return {};
-  return {
-    peak_vs: Math.max(...pair.slice(-30).map((p) => p[1])),
-    bench_level: round(level, 1),
-    ...(daily
-      ? {
-          per_day: round(
-            (mean(pair.slice(-7).map((p) => p[1])) / level) * daily,
-          ),
-        }
-      : {}),
-  };
-}
-export function decide(
-  s: Data,
-  perDay: number | null | undefined,
-  min: number,
-): string {
-  const big = (perDay ?? 0) >= min;
-  if (s.no_data) return "watch";
-  if (s.now === "fading") return "skip";
-  if (s.now === "flat") return big ? "watch" : "skip";
-  return big ? "prioritize" : "watch";
-}
-export async function fetchSeries(
-  keywords: string[],
-  benchmark: string,
-  day: string,
-): Promise<[Record<string, Data>, number]> {
-  const calls: TrendRequest[] = keywords.flatMap((k, i) => [
-      { call_id: `s${i}`, keywords: [k], start: shift(day, -90), end: day },
-      {
-        call_id: `p${i}`,
-        keywords: [k, benchmark],
-        start: shift(day, -90),
-        end: day,
-      },
-    ]),
-    [data, cost] = await trendsMany(calls);
-  return [
-    Object.fromEntries(
-      keywords.map((k, i) => [
-        k,
-        { solo: data[`s${i}`] ?? [], pair: data[`p${i}`] ?? [] },
-      ]),
-    ),
-    cost,
-  ];
-}
-export function measure(
-  rows: Data[],
-  series: Record<string, Data>,
-  minDaily: number,
-  day: string,
-  country: Record<string, Point[]> = {},
-): number | null {
-  for (const r of rows) r._pair = series[r.phrase]?.pair ?? [];
-  const daily = benchDaily(rows);
-  for (const r of rows) {
-    const solo = series[r.phrase]?.solo ?? [],
-      local = country[r.phrase];
-    let s = local?.length ? shape(local, day, COUNTRY) : shape(solo, day);
-    if (local?.length && !s.no_data) r.trend_geo = true;
-    else if (local?.length) s = shape(solo, day);
-    const z = size(r._pair, day, daily),
-      own = ownPerDay(solo, r.volume ?? 0, r.month ?? "", day);
-    delete r._pair;
-    if (own !== null) z.per_day = own;
-    Object.assign(r, s, z, { decision: decide(s, z.per_day, minDaily) });
-  }
-  return daily;
-}
 export async function countrySeries(
   rows: Data[],
   c: Config["usecases"],
@@ -427,7 +284,7 @@ export async function countrySeries(
   ];
 }
 // 手动 keywords 不改每日读取次数；完整分析成功后才更新状态。
-export async function run(
+async function research(
   cfg: Config,
   state: string,
   names: string[],
@@ -488,12 +345,7 @@ export async function run(
     }
   }
   const bench = c.benchmark.toLowerCase(),
-    [vol, c2] = await volumes(Object.keys(proposed).sort(), c.location_code),
-    generic = Object.entries(proposed)
-      .filter(([p]) => (vol[p]?.volume ?? 0) >= c.min_volume)
-      .map(([p, r]) => ({ ...r, ...vol[p] }))
-      .sort((a, b) => b.volume - a.volume)
-      .slice(0, c.trends_max),
+    generic = Object.entries(proposed).map(([p, r]) => ({ ...r, phrase: p })),
     rows: Data[] = [
       ...todo.map((n) => ({
         term: n,
@@ -502,7 +354,6 @@ export async function run(
         names: [],
         brand: true,
         evidence: "",
-        ...vol[n],
       })),
       ...generic,
     ],
@@ -511,17 +362,35 @@ export async function run(
       bench,
       day,
     ),
+    measured = measure(rows, series, c.min_daily, day, {}, c.benchmark_daily),
     [local, c4, localErrors] =
       goany.key() && c.country_trends
         ? await countrySeries(rows, c)
         : ([{}, 0, []] as [Record<string, Point[]>, number, string[]]),
-    daily = measure(rows, series, c.min_daily, day, local),
+    daily = measure(
+      rows,
+      series,
+      c.min_daily,
+      day,
+      local,
+      measured ?? c.benchmark_daily,
+    ),
     order: Record<string, number> = { prioritize: 0, watch: 1, skip: 2 };
   rows.sort(
     (a, b) =>
       order[a.decision] - order[b.decision] ||
       (b.per_day ?? 0) - (a.per_day ?? 0) ||
       (b.volume ?? 0) - (a.volume ?? 0),
+  );
+  // 先估算所有候选，再按量级筛选并限制通用词展示数量；无参考数据保留为空。
+  const displayed = rows
+    .filter(
+      (r) =>
+        r.kind === "generic" && (r.volume == null || r.volume >= c.min_volume),
+    )
+    .slice(0, c.trends_max);
+  const visible = rows.filter(
+    (r) => r.kind === "name" || displayed.includes(r),
   );
   if (!onRequest) {
     for (const n of todo) {
@@ -538,14 +407,37 @@ export async function run(
   }
   return {
     names: todo,
-    rows,
+    rows: visible,
+    volume_source: "trends_estimate",
+    evidence_provider:
+      process.env.KEYWORD_EVIDENCE_PROVIDER?.trim() || "google",
+    evidence_sources: Object.fromEntries(
+      Object.entries(ev).map(([name, e]) => [
+        name,
+        [...e.pages, ...e.posts]
+          .map((p) => ({ title: p.title ?? p.by, url: p.url }))
+          .concat(
+            e.readme
+              ? [
+                  {
+                    title: "README",
+                    url: `https://github.com/${e.repo}#readme`,
+                  },
+                ]
+              : [],
+          ),
+      ]),
+    ),
     proposed: asked,
     relevant: Object.keys(proposed).length,
-    kept: generic.length,
+    kept: displayed.filter((r) => r.volume != null && r.volume >= c.min_volume)
+      .length,
     benchmark: bench,
     bench_daily: daily ? round(daily) : null,
-    volume_month: generic.find((r) => r.month)?.month ?? "",
-    no_evidence: todo.filter((n) => !ev[n].posts.length && !ev[n].readme),
+    volume_month: "",
+    no_evidence: todo.filter(
+      (n) => !ev[n].posts.length && !ev[n].pages.length && !ev[n].readme,
+    ),
     posts_error: Object.entries(ev)
       .filter(([, e]) => e.error)
       .map(([n, e]) => `${n}: ${e.error}`)
@@ -558,7 +450,7 @@ export async function run(
     related_errors: relatedErrors,
     geo: c.related_geo,
     country_errors: localErrors,
-    cost_micros: cost + c0 + c2 + c3 + c4,
+    cost_micros: cost + c0 + c3 + c4,
   };
 }
 export function namesToRead(leads: Data[], recent: Data[]): string[] {
@@ -576,3 +468,8 @@ export function namesToRead(leads: Data[], recent: Data[]): string[] {
 }
 export const degraded = (uc: Data): boolean =>
   !!(uc.posts_error || uc.related_errors?.length || uc.country_errors?.length);
+
+// 统一收集提词与筛选的 token 费用，既有数据接口费用继续相加。
+export async function run(...args: Parameters<typeof research>): Promise<Data> {
+  return withModelCosts(() => research(...args));
+}

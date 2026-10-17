@@ -1,3 +1,4 @@
+import { withModelCosts } from "./model-costs.js";
 import { chat } from "./aisa.js";
 import { errorText, type Data } from "./core.js";
 import prompts from "./prompts.json" with { type: "json" };
@@ -26,7 +27,11 @@ export function parse(answer: string, n: number): Record<number, number> {
     return {};
   }
 }
+// 评分与研究分别计价，汇总报告不会重复累计。
 export async function score(rows: Data[], model: string): Promise<Data> {
+  return withModelCosts(() => scoreRows(rows, model));
+}
+async function scoreRows(rows: Data[], model: string): Promise<Data> {
   if (!model) return { judged: 0, skipped: true };
   let judged = 0;
   for (let start = 0; start < rows.length; start += 25) {

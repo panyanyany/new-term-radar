@@ -1,3 +1,5 @@
+import { SourceDataError, SourceTransportError } from "./source-errors.js";
+import { resolveTrendsConfig } from "./trends-config.js";
 import {
   readFileSync,
   existsSync,
@@ -17,12 +19,21 @@ export type Config = Omit<
   typeof defaults,
   | "x_accounts"
   | "sitemaps"
+  | "pages"
   | "topics"
   | "known_terms"
   | "stop_words"
   | "gsc"
   | "new_sites"
+  | "trends_roots"
 > & {
+  trends_roots: {
+    roots: string[];
+    windows: number[];
+    category_code?: number;
+    benchmark?: string;
+  };
+  pages: Record<string, import("./pages.js").PageSource>;
   _dir: string;
   x_accounts: { labs: string[]; bloggers: string[] };
   sitemaps: Record<
@@ -112,6 +123,10 @@ export function loadConfig(path: string): Config {
         ? { ...v, ...raw[k] }
         : (raw[k] ?? v);
   }
+  cfg.trends_roots = resolveTrendsConfig(
+    cfg.trends_roots,
+    cfg.usecases.benchmark,
+  );
   cfg._dir = dirname(resolve(path));
   setLang(cfg.lang);
   // 每次加载都以当前配置重建，避免 MCP 连续实验时残留上次的停用词。
@@ -151,7 +166,18 @@ export async function jsonFetch(
     ...init,
     signal: AbortSignal.timeout(timeout),
     headers: { "user-agent": UA, ...init.headers },
+  }).catch((cause: unknown) => {
+    // 原生 fetch 的网络失败只在请求边界识别，不用于全局异常分类。
+    if (cause instanceof TypeError && cause.message === "fetch failed")
+      throw new SourceTransportError("HTTP transport failed", { cause });
+    throw cause;
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return (await res.json()) as Data;
+  if (!res.ok) throw new SourceTransportError(`HTTP ${res.status}`);
+  try {
+    return (await res.json()) as Data;
+  } catch (cause) {
+    if (cause instanceof SyntaxError)
+      throw new SourceDataError("HTTP response is not valid JSON", { cause });
+    throw cause;
+  }
 }

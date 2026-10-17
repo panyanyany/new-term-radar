@@ -2,14 +2,14 @@
 
 ## 路由与备选
 
-`src/x.ts` 按用途路由，默认均为 `twitter-aio`：
+`src/x.ts` 按用途路由，默认均为 `twitter-aio`；关键词研究默认不调用 X 搜索，只有 `KEYWORD_EVIDENCE_PROVIDER=x` 时才使用以下搜索路由：
 
 | 环境变量 | 默认 | 保留的备选 |
 |---|---|---|
 | `X_TIMELINE_PROVIDER` | `twitter-aio` | `scrappa` |
 | `X_SEARCH_PROVIDER` | `twitter-aio` | `aisa` |
 
-显式切回旧方案：`X_TIMELINE_PROVIDER=scrappa X_SEARCH_PROVIDER=aisa pnpm radar daily --skip newsites --out report.md`。两项可独立选择，非法值报错；没有自动跨供应商重试。账号采集失败时保留原词表；名称搜索失败时沿用 README / 可选相关查询降级，报告显示错误。Scrappa Trends、AIsa Google Ads / WHOIS / 模型和 GoAnyAPI 可选相关查询保持独立。
+显式切回旧方案：`X_TIMELINE_PROVIDER=scrappa X_SEARCH_PROVIDER=aisa KEYWORD_EVIDENCE_PROVIDER=x pnpm radar daily --skip newsites --out report.md`。两项可独立选择，非法值报错；没有自动跨供应商重试。账号采集失败时保留原词表；名称搜索失败时沿用 README / 可选相关查询降级，报告显示错误。Scrappa Trends、AIsa WHOIS / 模型和 GoAnyAPI 可选相关查询保持独立。
 
 ## 凭据与运行
 
@@ -21,7 +21,7 @@
 - 本机凭据复用相邻项目已有 key，独立保存在 `~/.twitter-aio/key`，权限 0600；源码和仓库不含密钥。cron 使用 `HOME=/home/ubuntu`，无需修改 crontab。修改源码后须 `pnpm build` 更新 `dist`。
 - Actions 使用 `TWITTER_AIO_RAPIDAPI_KEY` secret，可用同名 provider 仓库变量选择备选；切到 Scrappa/AIsa 后仍须其对应 secret。
 
-请求超时 40 秒，不自动重试；HTTP、网络和响应错误不输出请求头、密钥或原始响应。API 调用不意味着免费。报告数字不含尚未核实的 AIO 套餐费用，也不含模型费用；不可把 AIO 的内部成本占位零解释为零账单。
+请求超时 40 秒，不自动重试；HTTP、网络和响应错误不输出请求头、密钥或原始响应。用户确认 AIO 按每请求 $0.0004 计入报告；身份查询和每页请求分别计数。模型按实际 token 用量与 OpenRouter 参考单价估算，计费与不完整边界见 [costs.md](costs.md)。
 
 ## 账号采集契约
 

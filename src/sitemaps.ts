@@ -1,3 +1,4 @@
+import { pageDiff } from "./pages.js";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { gunzipSync } from "node:zlib";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -83,7 +84,8 @@ export function slugText(url: string): string {
     .replace(/[/_\-]+/g, " ");
 }
 export async function diff(cfg: Config, state: string): Promise<Data> {
-  if (!Object.keys(cfg.sitemaps).length) return { skipped: true };
+  const pages = await pageDiff(cfg, state);
+  if (!Object.keys(cfg.sitemaps).length) return { sites: {}, terms: [], pages };
   const report: Data = {},
     recent: [string, string][] = [],
     baseline: [string, string][] = [];
@@ -114,6 +116,7 @@ export async function diff(cfg: Config, state: string): Promise<Data> {
     }
   }
   return {
+    pages,
     sites: report,
     terms: surges(
       bySource(recent),

@@ -26,7 +26,7 @@
 
 | 信号 | 抓什么 | 需要 | 花费 |
 |---|---|---|---|
-| ① X | 你关注的账号里，60 天内第一次出现的名字 | Twitter AIO key（Scrappa 备选） | 按 AIO 套餐计费，未计入报告估算 |
+| ① X | 你关注的账号里，60 天内第一次出现的名字 | Twitter AIO key（Scrappa 备选） | 每请求 $0.0004，身份查询与分页分别计费 |
 | ① Hugging Face | 新进热门榜前 50 的模型；量化版、微调版归到同一个基础名下 | 无 | 免费 |
 | ② GitHub 爆发 | 创建不到 14 天、平均每天涨 200 星以上，或比昨天多 400 星的仓库；附带大家实际会搜的写法（「niko strata」） | 无（有 GitHub token 限额更高） | 免费 |
 | ③ 竞品 sitemap | 某个站新增的几个网址共用、而它的旧网址里很少出现的词 | 你列出的 sitemap | 免费 |
@@ -36,7 +36,7 @@
 | 新词表 | 针对当天的新名字:找出它背后的通用搜索词(大家拿这个新东西做什么),逐个估算规模并给出决策 | Twitter AIO、AIsa、Scrappa key；[GoAnyAPI](https://goanyapi.com) 可选 | 各接口用量及 AIO 套餐，见费用文档 |
 | 名字判断 | 小模型给每个词打分：是某个具体东西的名字，还是普通词？ | AIsa key | 每次不到一美分 |
 
-AIsa X 每次 $0.003 是备选接口计费；默认 X 使用 Twitter AIO 套餐，其单价与额度尚未核实，报告不计入这部分费用。各来源费用与统计边界见 [.devguide/costs.md](.devguide/costs.md)。
+AIsa X 每次 $0.003 是备选接口参考价；默认 X 使用 Twitter AIO，报告按用户确认的每请求 $0.0004 估算，并计入按 OpenRouter 单价估算的模型 token 费用。各来源费用与统计边界见 [.devguide/costs.md](.devguide/costs.md)。
 
 ## 新词表
 
@@ -54,14 +54,14 @@ AIsa X 每次 $0.003 是备选接口计费；默认 X 使用 Twitter AIO 套餐�
 
 它是怎么做出来的（`src/usecases.ts`）：
 
-1. **取证**：搜提到这个名字的高赞帖子（X 高级搜索）；如果是仓库，再读它的 README。
+1. **取证**：默认 Scrappa Google 搜索名字一次，使用最多八条匹配名称的标题、摘要和链接；如果是仓库，再读 README。不抓网页全文；`KEYWORD_EVIDENCE_PROVIDER=x` 可手动切回 X 高赞搜索。
 2. **提词**：模型读完证据，针对它看到的每一种用法，写出普通人会搜的关键词，并附上原话作依据。借别的产品名字的写法（「photoshop alternative」）会保留并标 ⚠：需求常常挂在老牌产品上，要不要用别人的品牌由你判断。
    如果配了 GoAnyAPI 的 key（可选，见下），雷达还会取这个名字在 **Google Trends 里的相关查询**：大家实际把什么词和它一起搜。SynthID Detector 拿到的是「ai photo detector」「google ai detector」「ai detector」，这些行带 🔎。包含名字本身的查询列为它的长尾（「photocraft download」「nano banana 2.1 vs pro」）。本身是别的新东西名字的查询（「nano banana 2.1」旁边的「gpt image 2.5」）单独记为线索。
 3. **筛选**：再调一次模型，给每个写法打分：这个名字能不能回答这个搜索；同时标出品牌、认出别的东西的名字。关系不够直接的丢掉。Claude Haiku 5.5 提出的 6 个全被筛掉（「ai coding assistant」「github copilot alternative」）；SynthID Detector 的 5 个全部保留。
-4. **搜索量**：一次批量查询，取剩下写法的 Google Ads 月搜索量。低于 `min_volume` 的丢掉，大部分都会被丢掉。
-5. **Trends**，每行查两次：单独查这个词，得到曲线形状（是不是新词、哪天开始涨、峰值、近 7 天比前 7 天、现在的走势）；和基准词（默认 `gpts`）放在一起查，得到规模。
+4. **Trends 批量比较**：每批第一词固定为 `hex picker`，另外最多四个待测词；共享同一热度尺度，同时读取曲线形状与量级。
+5. **估算搜索量**：假设 `hex picker` 每天约 2500 次搜索，以最近 7 个稳定日期的平均热度比推算日搜，估算月量为日搜 × 30。参考词无热度或目标词无信号时留空；再按估算月量筛选候选。
 
-日搜是估算值。通用词用它自己的 Google Ads 月搜索量，沿它自己的 Trends 曲线推到今天。再用这些词反推出基准词的规模，名字还没有搜索量数据，就对比基准词来估。
+不请求 Google Ads API。全部量级是基于参考词假设的 Trends 估算，不是实测月搜索量；参考词假设的误差会同比例传递。
 
 决策：**优先** = 近 30 天涨过、现在还在高位、估算日搜不低于 `min_daily`。**观察** = 涨了但规模小，或还太早读不出，或没动但本身有这个规模的稳定需求。**跳过** = 已回落，或没动且规模小。
 
@@ -73,7 +73,7 @@ AIsa X 每次 $0.003 是备选接口计费；默认 X 使用 Twitter AIO 套餐�
 - 这张表今天靠得住的用处，是告诉你**一个新东西对应的是哪个已有需求、这个需求有多大**（「ai image detector」约每天 2,500 次搜索）。通用词会不会跟着名字涨，要等 14 天复盘才知道，我们现在还没有结果。
 - 对纯模型发布（Claude Haiku 5.5、Nano Banana 2.1），证据都是公告和跑分，提出来的词很弱（「ai coding assistant」）。对只做一件事的产品和仓库效果更好。
 - **Google Trends 最后两天的数据没有结算。** 互不相关的词在这两天会依次返回 0 和 100，看起来像一个尖峰。我们第一遍就是被这个骗了；现在代码里所有读 Trends 的地方都会丢掉这两天，而且上涨必须持续两天才算数。
-- Google Ads 的搜索量滞后约两个月。月搜只有几百的词，Trends 基本读不出可靠的数。
+- Trends 对低热度词分辨率有限，零刻度不代表真实搜索量为零。
 
 ### 某个数据源没配或挂了的时候
 
@@ -94,9 +94,9 @@ AIsa X 每次 $0.003 是备选接口计费；默认 X 使用 Twitter AIO 套餐�
 
 ## 数据源与密钥
 
-账号推文和全站高赞搜索默认使用 Twitter AIO，设置 `TWITTER_AIO_RAPIDAPI_KEY` 或 `~/.twitter-aio/key`。原实现保留：`X_TIMELINE_PROVIDER=scrappa` 切换账号采集，`X_SEARCH_PROVIDER=aisa` 切换搜索；两项独立选择，失败不自动调用另一家收费接口。搜索在本地核验正文、日期、点赞与回复，最多 5 页，取得 12 条合格证据即可停止。报告估算不含 AIO 套餐费用。
+账号推文和全站高赞搜索默认使用 Twitter AIO，设置 `TWITTER_AIO_RAPIDAPI_KEY` 或 `~/.twitter-aio/key`。原实现保留：`X_TIMELINE_PROVIDER=scrappa` 切换账号采集，`X_SEARCH_PROVIDER=aisa` 切换搜索；两项独立选择，失败不自动调用另一家收费接口。搜索在本地核验正文、日期、点赞与回复，最多 5 页，取得 12 条合格证据即可停止。报告包含 AIO 每请求 $0.0004 及按返回 token 用量和 OpenRouter 单价估算的模型费用。
 
-全球 Trends 使用 [Scrappa MCP](https://scrappa.co/docs/mcp-integration)，需要 `SCRAPPA_API_KEY`。[AIsa](https://go.aisa.one/yansen-zhu) 负责 Google Ads 搜索量、域名数据、模型及备选 X 搜索，需要 `AISA_API_KEY`。凭据和切换细节见 [.devguide/twitter-aio.md](.devguide/twitter-aio.md)。
+全球 Trends 使用 [Scrappa MCP](https://scrappa.co/docs/mcp-integration)，需要 `SCRAPPA_API_KEY`。[AIsa](https://go.aisa.one/yansen-zhu) 负责域名数据、模型及备选 X 搜索，需要 `AISA_API_KEY`。凭据和切换细节见 [.devguide/twitter-aio.md](.devguide/twitter-aio.md)。
 
 相关查询保留 GoAnyAPI：其响应明确区分 `top` 和 `rising`。代码优先 rising、再补 top，其中其他新产品名只有来自 rising 才成为新线索。Scrappa 实测只有未分类相关词，不能替代 rising。
 
@@ -170,7 +170,7 @@ pnpm radar daily --skip x,hf --out report.md  # 其余全部，每天一次
 | `breakout` | `window_days`、`min_stars`、`velocity_min`（每天涨星）、`delta_min`（比昨天多的星） |
 | `new_sites` | `queries`：名称和域名的 SQL LIKE 模式（`"%ai%"`），每个是一次付费查询；`weekday`（0 = 周一） |
 | `review` | `after_days`（14）和 `per_day`（每天复盘 5 条） |
-| `usecases` | 新词表。`per_day`（每天读几个名字，0 = 关闭）、`model`、`benchmark`（用来比规模的基准词）、`min_volume`（写法至少要有的月搜索量）、`min_daily`（判为「优先」所需的日搜）、`recheck_days`（3）、`related`（设了 `GOANYAPI_API_KEY` 时是否用相关查询）、`related_geo`（`US`）、`country_trends`（规模较大的行改读该国数据）、`country_min_volume`（1000）、`country_max`（8） |
+| `usecases` | 新词表。`per_day`（每天读几个名字，0 = 关闭）、`model`、`benchmark`（默认 `hex picker`）、`benchmark_daily`（假定每日 2500 次）、`min_volume`（写法至少要有的 Trends 估算月量）、`min_daily`（判为「优先」所需的日搜）、`recheck_days`（3）、`related`（设了 `GOANYAPI_API_KEY` 时是否用相关查询）、`related_geo`（`US`）、`country_trends`（规模较大的行改读该国数据）、`country_min_volume`（1000）、`country_max`（8） |
 | `gsc` | `site`（`sc-domain:example.com`）和 `token_file`。留 `{}` 即关闭 |
 
 添加某个站的 sitemap 之前，请先看它的 robots.txt，`pause` 不要低于它的 crawl-delay。示例配置每天总共几十次请求，按 `pause` 间隔发出。
@@ -292,3 +292,7 @@ pnpm check
 ## 许可
 
 MIT。这套雷达提取自 [agentskillshub.top](https://agentskillshub.top) 背后每天在跑的版本。
+
+费用明细保存在 `state/radar.db` 的 `api_usage` 表。使用 `pnpm costs --days 30` 查看供应商费用分布，`--by module|model|endpoint|day` 切换分组，`--json` 导出统计。请求失败也留记录，未知费用单独提示；详见 [.devguide/costs.md](.devguide/costs.md)。
+
+提词与筛选默认使用 `deepseek-v4.1-flash`（通过 AIsa）；输入/输出按用户指定的 $0.283/$1.131 每百万 token 估算，缓存输入按普通输入计价。名称评分仍使用 GPT-4.1 mini。

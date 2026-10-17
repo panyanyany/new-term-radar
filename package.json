@@ -18,7 +18,8 @@
     "format": "prettier --write src scripts tests/*.ts package.json tsconfig*.json",
     "format:check": "prettier --check src scripts tests/*.ts package.json tsconfig*.json",
     "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
-    "diagram": "tsx scripts/make-diagram.ts"
+    "diagram": "tsx scripts/make-diagram.ts",
+    "costs": "tsx src/cli.ts costs"
   },
   "bin": {
     "new-term-radar": "dist/src/cli.js",
@@ -27,6 +28,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
     "better-sqlite3": "^12.6.2",
+    "cheerio": "^1.2.0",
     "commander": "^14.0.3",
     "dotenv": "^17.3.1",
     "fast-xml-parser": "^5.5.6",

@@ -1,6 +1,6 @@
 ---
 name: new-term-radar
-description: One run from signal to decision. Finds the names of new AI models, products and repositories seen in the last 24 hours (X, Hugging Face, GitHub, sitemaps), then builds a keyword priority table for them, each new name and the generic search terms behind it, sized against Google Ads volume and Google Trends, with prioritize, watch or skip. Use when the user wants today's new AI keywords, an AI trend radar, or asks what new AI terms are worth building a page or tool for. Also takes names the user already has. Runs the new-term-radar command line; needs an AISA_API_KEY.
+description: One run from signal to decision. Finds the names of new AI models, products and repositories seen in the last 24 hours (X, Hugging Face, GitHub, sitemaps), then builds a keyword priority table for them, each new name and the generic search terms behind it, sized using Google Trends relative to hex picker (assumed 2,500 searches/day), with prioritize, watch or skip. Use when the user wants today's new AI keywords, an AI trend radar, or asks what new AI terms are worth building a page or tool for. Also takes names the user already has. Runs the new-term-radar command line; needs an AISA_API_KEY.
 ---
 
 # New-term radar
@@ -10,7 +10,7 @@ The whole job in one run: collect what is new, then work out which keywords are 
 ## Before you run anything
 
 1. Find the radar: `$NEW_TERM_RADAR_DIR` if set, else `~/new-term-radar`; clone https://github.com/zhuyansen/new-term-radar there if missing. Run every command from that directory. Node.js 22+ and pnpm; run `pnpm install --frozen-lockfile` and `pnpm build`.
-2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): Google Ads volumes and model calls go through it. X timelines and global search default to Twitter AIO (`TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`); worldwide Trends requires `SCRAPPA_API_KEY` or an existing Scrappa local configuration. Original X providers remain selectable via `X_TIMELINE_PROVIDER=scrappa` and `X_SEARCH_PROVIDER=aisa`; there is no automatic paid fallback. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
+2. An AIsa key must be available, as `AISA_API_KEY` or from the AIsa CLI (`aisa login` stores it in `~/.aisa`): Model calls go through it. X timelines default to Twitter AIO (`TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`); evidence search and worldwide Trends use Scrappa credentials. Evidence defaults to Google title/snippet/link search plus README; set `KEYWORD_EVIDENCE_PROVIDER=x` to use retained X search. Original X providers remain selectable via `X_TIMELINE_PROVIDER=scrappa` and `X_SEARCH_PROVIDER=aisa`; there is no automatic paid fallback. Without it, stop and say so. A key comes from https://go.aisa.one/yansen-zhu.
 3. `GOANYAPI_API_KEY` is optional (a key comes from https://goanyapi.com/r/ga-95708898fb). With it the table also holds what people really searched together with each name, and reads the bigger rows from one country's settled series. Without it, tell the user a "flat" reading is weaker evidence.
 4. If there is no `config.json`, copy `config.example.json` and tell the user they are on the example list of X accounts and sitemaps.
 
@@ -59,6 +59,6 @@ Each table row: `phrase`, `kind` (`name` or `generic`), `names` (the name it sit
 
    Use the radar's `decision` and add one short reason per row from the fields above.
 3. **Under the table**: each name's long-tails (`tails`), other names found alongside (`cosearch`), then every caveat that applies: missing key, failed source, first run, estimate quality.
-4. **Two or three lines of advice**: which rows are worth a page or a tool now, and what to look at again in a few days. Search volume data runs about two months behind; say so if the user is about to commit work to a number.
+4. **Two or three lines of advice**: which rows are worth a page or a tool now, and what to look at again in a few days. Volume is an estimate from a fixed reference assumption, not measured Google Ads volume; make that distinction clear.
 
 Do not add names, rows, volumes or dates from your own knowledge. The output is what the radar saw.

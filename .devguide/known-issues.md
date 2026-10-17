@@ -9,7 +9,7 @@
 
 ## 搜索量边界
 
-发现线索本身不附搜索量；关键词表里的月搜索量来自 Google Ads，日搜索量由 Trends 校准估算，不是实时精确统计。无数据保留为空，不以热度或广告投放数代替月搜索量。
+发现线索本身不附搜索量；关键词表使用 Trends 与 hex picker（假定每天 2500 次）比较估算日搜，月量级为估算日搜乘 30，不请求 Google Ads，也不是实测月搜索量。无数据保留为空，不以热度或广告投放数代替月搜索量。
 
 ## Twitter AIO 复用边界
 
@@ -67,7 +67,7 @@ AIsa 新增 12 次请求先逐批报价、再按游标调用，新增实际费�
 | `goanyapi.ts` 的相关查询 | `google-trends-related` | 实测仅扁平数组、无 rising 标识，不等价；生产保留 GoAnyAPI |
 | `sources.ts` 的账号最近推文 | `x-twitter-user-tweets` | 接受 handle、cursor、count、with_replies、groupthreads、since；已适配正文、点赞、时间和游标分页，采集预算每账号最多 3 页 |
 | `usecases.ts` 的 X 高赞推文搜索 | 未发现 `x-twitter-search` | Google `site:x.com` 检索不能保持点赞过滤、完整性和时效语义 |
-| `usecases.ts` 的 Google Ads 月搜索量 | 未发现等价端点 | Trends 相对热度与热门事件搜索量不能当作任意关键词的 Google Ads 月搜索量 |
+| 关键词量级 | Trends 固定参考词推算 | hex picker 假定 2500 次/日；月量为估算日量 × 30，不是 Google Ads 实测月搜索量 |
 | `new-sites.ts` 的 WHOIS + 首次收录 + ETV/排名词筛选 | 未发现 WHOIS 等价端点 | 域名可注册性查询不具备这些指标 |
 | `judge.ts`、`usecases.ts` 的模型生成与筛选 | 未发现 chat completions 服务 | 需独立模型服务 |
 
@@ -81,7 +81,7 @@ X 全站搜索的搜索引擎缓存与当前官网不一致：缓存曾列 20 �
 
 ### Google Ads Transparency 不提供关键词月搜索量
 
-[Scrappa Google Ads Transparency](https://scrappa.co/apis/google-ads-transparency-api) 的三个端点分别查询广告主、广告列表、单条广告素材及投放地区/起止日期。它不提供 `search_volume` 或 `monthly_searches`，不能替代 `usecases.volumes()` 所需的关键词需求数据。广告数量、投放时长与关键词月搜索量不是同一指标；关键词月搜索量需要 Keyword Planner / Google Ads 关键词历史指标一类数据源。
+[Scrappa Google Ads Transparency](https://scrappa.co/apis/google-ads-transparency-api) 的三个端点分别查询广告主、广告列表、单条广告素材及投放地区/起止日期。它不提供 `search_volume` 或 `monthly_searches`，不能提供实测关键词月搜索量；本项目当前采用 Trends 固定参考词估量，不调用该广告接口。广告数量、投放时长与关键词月搜索量不是同一指标；关键词月搜索量需要 Keyword Planner / Google Ads 关键词历史指标一类数据源。
 
 ## 停用词与 HF 名称清洗按 AI 领域调
 
@@ -94,3 +94,7 @@ X 全站搜索的搜索引擎缓存与当前官网不一致：缓存曾列 20 �
 ## 大型 sitemap 的本地处理
 
 `sitemaps.diff()` 使用 Set 判断旧 URL，差分查询不再逐项扫描旧数组；统计数据逐条追加，避免大数组展开为函数参数触发 RangeError。回归样本使用 200,000 条旧 URL，验证新增 URL、词频和快照。XML 与 URL 仍在内存中完整处理，内存需求随站点大小增长；这不是流式采集器，也不能据此保证任意上游大站都成功。
+
+## 候选与历史边界
+
+日报候选仅来自本轮信号及本轮关键词研究。`report_terms` 和上一份报告只能提供首次发现时间、去重及解释缓存，不能通过最近七天查询补入候选。`usecases.due` 的二次研究也仅限本轮再次出现的名称；跳过 X/HF 时不从历史线索补名字。新旧分类与候选生成分开：有历史且满 24 小时、但本轮未出现的词不会展示。停用 sitemap 不删除历史记录，也不会继续展示其旧路径碎片。

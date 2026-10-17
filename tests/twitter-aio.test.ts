@@ -97,7 +97,8 @@ it.each([false, true])(
       ),
       timeline([entry(raw("old", "2026-10-14"))], double),
     );
-    const [posts] = await aio.userPosts("OpenAI", now);
+    const [posts, cost] = await aio.userPosts("OpenAI", now);
+    expect(cost).toBe(1200);
     expect(posts).toHaveLength(3);
     expect(fetch).toHaveBeenCalledTimes(3);
     expect(String(fetch.mock.calls[1][0])).toContain("/tweetsAndReplies");
@@ -184,8 +185,9 @@ it("search filters noise, follows wrapped cursor, deduplicates and sorts", async
     },
     { entries: [entry(raw()), entry(second)] },
   );
-  const [posts] = await x.search("Claude Code", "2026-10-16");
+  const [posts, cost] = await x.search("Claude Code", "2026-10-16");
   expect(posts.map((t) => t.id)).toEqual(["2", "1"]);
+  expect(cost).toBe(800);
   expect(fetch).toHaveBeenCalledTimes(2);
   expect(String(fetch.mock.calls[1][0])).toContain("cursor=next");
 });
@@ -194,8 +196,9 @@ it("search stops at five pages while still returning valid evidence", async () =
     const i = c ? Number(c) : 0;
     return { tweets: [aio.tweet(raw(String(i)))!], cursor: String(i + 1) };
   });
-  const [posts] = await x.search("Claude Code", "2026-10-16");
+  const [posts, cost] = await x.search("Claude Code", "2026-10-16");
   expect(posts).toHaveLength(5);
+  expect(cost).toBe(2000);
   expect(mock).toHaveBeenCalledTimes(5);
 });
 it("search stops after twelve qualified tweets", async () => {
@@ -203,7 +206,9 @@ it("search stops after twelve qualified tweets", async () => {
     tweets: Array.from({ length: 20 }, (_, i) => aio.tweet(raw(String(i)))!),
     cursor: "next",
   });
-  expect((await x.search("Claude Code", "2026-10-16"))[0]).toHaveLength(12);
+  const [posts, cost] = await x.search("Claude Code", "2026-10-16");
+  expect(posts).toHaveLength(12);
+  expect(cost).toBe(400);
   expect(mock).toHaveBeenCalledTimes(1);
 });
 it("search rejects repeated cursors and never silently falls back", async () => {

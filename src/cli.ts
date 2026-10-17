@@ -1,4 +1,14 @@
 #!/usr/bin/env node
+import { rememberDiscoveries } from "./term-observations.js";
+import { sourceFailure } from "./source-errors.js";
+import { createBrief, briefReport } from "./brief-report.js";
+import {
+  withUsageRun,
+  withUsageModule,
+  currentUsage,
+  usageSummary,
+  usageLines,
+} from "./usage.js";
 import { Command } from "commander";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve, extname } from "node:path";
@@ -12,6 +22,7 @@ import {
   type Data,
 } from "./core.js";
 import { xNew, hfNew } from "./sources.js";
+import { discoverRoots } from "./trends-roots.js";
 import { breakouts } from "./breakout.js";
 import { diff } from "./sitemaps.js";
 import { newSites } from "./new-sites.js";
@@ -25,6 +36,7 @@ export const SKIPPABLE = [
   "x",
   "hf",
   "breakout",
+  "trends",
   "sitemaps",
   "newsites",
   "gsc",
@@ -36,12 +48,20 @@ export const SKIPPABLE = [
 export async function run(
   fn: () => Data | Promise<Data>,
   skip = false,
+  module?: string,
 ): Promise<Data> {
   if (skip) return { skipped: true };
   try {
-    return await fn();
+    return await withUsageModule(module ?? "other", fn);
   } catch (e) {
-    return { error: errorText(e) };
+    if (module === "trends") {
+      sourceFailure("trends_run", {}, e);
+    }
+    return {
+      error: errorText(e),
+      cost_micros: (e as Data)?.cost_micros ?? 0,
+      model_unpriced_calls: (e as Data)?.model_unpriced_calls ?? 0,
+    };
   }
 }
 export function keptLeads(state: string, days: number): Data {
@@ -52,7 +72,7 @@ export function keptLeads(state: string, days: number): Data {
     db.close();
   }
 }
-export async function keywordTable(
+async function keywordTableInner(
   cfg: Config,
   state: string,
   names: string[],
@@ -68,7 +88,20 @@ export async function keywordTable(
     today(),
     true,
   );
-  return [uc, report.keywordTable(cfg, uc).join("\n").trim() + "\n"];
+  return [
+    { ...uc, ...report.costSummary(uc), usage: currentUsage() },
+    [...report.keywordTable(cfg, uc), ...report.costLines(uc)]
+      .join("\n")
+      .trim() + "\n",
+  ];
+}
+// CLI 与 MCP 的独立关键词调用共用相同记账范围。
+export async function keywordTable(
+  ...args: Parameters<typeof keywordTableInner>
+): Promise<[Data, string]> {
+  return withUsageRun(args[1], "keywords", () =>
+    withUsageModule("usecases", () => keywordTableInner(...args)),
+  );
 }
 export async function main(
   argv = process.argv.slice(2),
@@ -80,7 +113,7 @@ export async function main(
   }
   const p = new Command()
     .name("new-term-radar")
-    .argument("<command>", "daily | sources | keywords | leads")
+    .argument("<command>", "daily | sources | keywords | leads | costs")
     .argument("[names...]")
     .option(
       "--repo <mapping>",
@@ -89,6 +122,11 @@ export async function main(
       [],
     )
     .option("--days <days>", "lead window", "7")
+    .option(
+      "--by <group>",
+      "cost grouping: provider | module | model | endpoint | day",
+      "provider",
+    )
     .option("--json")
     .option("--config <file>", "configuration", "config.json")
     .option("--state <dir>", "persistent state", "state")
@@ -102,13 +140,24 @@ export async function main(
     args = p.opts(),
     names = rest,
     skip = new Set<string>(args.skip.split(",").filter(Boolean));
-  if (!["daily", "sources", "keywords", "leads"].includes(command))
+  if (!["daily", "sources", "keywords", "leads", "costs"].includes(command))
     throw new Error("unknown command");
   if ([...skip].some((s) => !SKIPPABLE.includes(s)))
     throw new Error("--skip: unknown signal");
   const days = Number(args.days);
   if (!Number.isInteger(days) || days < 0)
     throw new Error("--days must be a non-negative integer");
+  if (command === "costs") {
+    const stats = usageSummary(
+      args.state,
+      p.getOptionValueSource("days") === "cli" ? days : 30,
+      args.by,
+    );
+    output(
+      args.json ? JSON.stringify(stats, null, 2) : usageLines(stats).join("\n"),
+    );
+    return 0;
+  }
   if (command === "leads") {
     const d = keptLeads(args.state, days);
     if (args.json) output(JSON.stringify(d, null, 1));
@@ -133,123 +182,163 @@ export async function main(
   const cfg = loadConfig(args.config);
   if (skip.has("judge")) cfg.judge.model = "";
   mkdirSync(args.state, { recursive: true });
-  if (command === "keywords") {
-    const repos: Record<string, string> = {};
-    for (const r of args.repo) {
-      const i = r.indexOf("=");
-      if (i < 1 || !r.slice(i + 1).includes("/"))
-        throw new Error("--repo must be NAME=OWNER/REPO");
-      repos[r.slice(0, i)] = r.slice(i + 1);
+  return withUsageRun(args.state, command, async () => {
+    if (command === "keywords") {
+      const repos: Record<string, string> = {};
+      for (const r of args.repo) {
+        const i = r.indexOf("=");
+        if (i < 1 || !r.slice(i + 1).includes("/"))
+          throw new Error("--repo must be NAME=OWNER/REPO");
+        repos[r.slice(0, i)] = r.slice(i + 1);
+      }
+      const [uc, text] = await keywordTable(cfg, args.state, names, repos),
+        out = args.json ? JSON.stringify(uc, null, 1) : text;
+      if (args.out) writeFileSync(args.out, out);
+      output(out);
+      return 0;
     }
-    const [uc, text] = await keywordTable(cfg, args.state, names, repos),
-      out = args.json ? JSON.stringify(uc, null, 1) : text;
-    if (args.out) writeFileSync(args.out, out);
-    output(out);
-    return 0;
-  }
-  const blocks: Record<string, Data> = {
-    x: await run(() => xNew(cfg, args.state), skip.has("x")),
-    hf: await run(() => hfNew(cfg, args.state), skip.has("hf")),
-  };
-  const daily = command === "daily";
-  if (daily) {
-    blocks.breakout = await run(
-      () => breakouts(cfg, args.state),
-      skip.has("breakout"),
-    );
-    blocks.sitemap = await run(
-      () => diff(cfg, args.state),
-      skip.has("sitemaps"),
-    );
-    const weekday = (new Date().getDay() + 6) % 7;
-    blocks.newsite = await run(
-      () => newSites(cfg, args.state),
-      skip.has("newsites") ||
-        (!args.newSites && weekday !== cfg.new_sites.weekday),
-    );
-  }
-  const found = daily
-      ? await run(() => gscNew(cfg), skip.has("gsc"))
-      : { off: true },
-    [lead, judged] = await report.leads(cfg, blocks),
-    db = new Store(args.state);
-  try {
-    const extra: Record<string, Data> = {
-      judge: judged,
-      record: await run(() => ({
-        recorded: db.record(report.toRecord(cfg, lead)),
-      })),
+    const blocks: Record<string, Data> = {
+      x: await run(() => xNew(cfg, args.state), skip.has("x"), "x"),
+      hf: await run(() => hfNew(cfg, args.state), skip.has("hf"), "hf"),
     };
-    let text: string;
+    const daily = command === "daily";
     if (daily) {
-      extra.recent_sources = await run(
-        () => ({ rows: db.recentSources() }),
-        !skip.has("x") || !skip.has("hf"),
+      blocks.trends = await run(
+        () =>
+          discoverRoots(cfg, (rows) => {
+            const observations = new Store(args.state);
+            try {
+              rememberDiscoveries(observations, rows);
+            } finally {
+              observations.close();
+            }
+          }),
+        skip.has("trends"),
+        "trends",
       );
-      const names = usecases.namesToRead(
-          report.toRecord(cfg, lead),
-          extra.recent_sources.rows ?? [],
-        ),
-        repos = Object.fromEntries(
-          lead.filter((r) => r.repo).map((r) => [r.term, r.repo]),
+      blocks.breakout = await run(
+        () => breakouts(cfg, args.state),
+        skip.has("breakout"),
+        "breakout",
+      );
+      blocks.sitemap = await run(
+        () => diff(cfg, args.state),
+        skip.has("sitemaps"),
+        "sitemaps",
+      );
+      const weekday = (new Date().getDay() + 6) % 7;
+      blocks.newsite = await run(
+        () => newSites(cfg, args.state),
+        skip.has("newsites") ||
+          (!args.newSites && weekday !== cfg.new_sites.weekday),
+        "newsites",
+      );
+    }
+    const found = daily
+        ? await run(() => gscNew(cfg), skip.has("gsc"))
+        : { off: true },
+      [lead, judged] = await withUsageModule("judge", () =>
+        report.leads(cfg, blocks),
+      ),
+      db = new Store(args.state);
+    try {
+      const extra: Record<string, Data> = {
+        judge: judged,
+        record: await run(() => ({
+          recorded: db.record(report.toRecord(cfg, lead)),
+        })),
+      };
+      let text: string;
+      if (daily) {
+        // 历史线索仅供时间判断，不在跳过数据源时补充研究候选。
+        extra.recent_sources = { skipped: true };
+        const names = usecases.namesToRead(report.toRecord(cfg, lead), []),
+          repos = Object.fromEntries(
+            lead.filter((r) => r.repo).map((r) => [r.term, r.repo]),
+          );
+        extra.usecases = await run(
+          () => usecases.run(cfg, args.state, names, repos),
+          skip.has("usecases") || !cfg.usecases.per_day,
+          "usecases",
         );
-      extra.usecases = await run(
-        () => usecases.run(cfg, args.state, names, repos),
-        skip.has("usecases") || !cfg.usecases.per_day,
-      );
-      const recorded = await run(() => ({
-        recorded: db.record(report.usecaseLeads(extra.usecases)),
-      }));
-      if (recorded.error) extra.record = recorded;
-      const rev = await run(() => review(cfg, db), skip.has("review")),
-        summ = await run(() => db.summary());
-      text = report.daily(cfg, lead, blocks, found, rev, summ, extra);
-      if (args.out) {
-        const ext = extname(args.out);
-        writeFileSync(
-          args.out.slice(0, ext ? -ext.length : undefined) + ".json",
-          JSON.stringify(
-            {
-              leads: lead,
-              ...blocks,
-              gsc: found,
-              review: rev,
-              summary: summ,
-              keywords: extra.usecases,
-            },
-            null,
-            1,
+        const recorded = await run(() => ({
+          recorded: db.record(report.usecaseLeads(extra.usecases)),
+        }));
+        if (recorded.error) extra.record = recorded;
+        const rev = await run(
+            () => review(cfg, db),
+            skip.has("review"),
+            "review",
+          ),
+          summ = await run(() => db.summary());
+        const brief = await withUsageModule("report", () =>
+          createBrief(cfg, db, lead, blocks, extra.usecases, args.out),
+        );
+        text = briefReport(brief.rows, new Date(), [
+          ...Object.values(blocks),
+          rev,
+          judged,
+          extra.usecases,
+        ]);
+        if (args.out) {
+          const ext = extname(args.out);
+          writeFileSync(
+            args.out.slice(0, ext ? -ext.length : undefined) + ".json",
+            JSON.stringify(
+              {
+                brief_terms: brief.rows,
+                brief_error: brief.error,
+                leads: lead,
+                ...blocks,
+                gsc: found,
+                review: rev,
+                summary: summ,
+                keywords: extra.usecases,
+                judge: judged,
+                usage: currentUsage(),
+                ...report.costSummary(
+                  ...Object.values(blocks),
+                  rev,
+                  judged,
+                  extra.usecases,
+                ),
+              },
+              null,
+              1,
+            ),
+          );
+        }
+      } else {
+        const errors = [...Object.values(blocks), ...Object.values(extra)].some(
+          (b) => b.error,
+        );
+        if (!report.named(cfg, lead).length && !errors) {
+          output(
+            t("sources_quiet") +
+              Object.entries(blocks)
+                .map(([k, v]) => `${k} ${v.posts ?? v.models ?? t("dash")}`)
+                .join("; ") +
+              "\n" +
+              report.costLines().join("\n"),
+          );
+          return 0;
+        }
+        text = report.sources(cfg, lead, blocks, extra);
+      }
+      if (args.out) writeFileSync(args.out, text);
+      output(text);
+      if (args.mail)
+        output(
+          await send(
+            `New-term radar${daily ? "" : " · sources"} ${today()}`,
+            text,
           ),
         );
-      }
-    } else {
-      const errors = [...Object.values(blocks), ...Object.values(extra)].some(
-        (b) => b.error,
-      );
-      if (!report.named(cfg, lead).length && !errors) {
-        output(
-          t("sources_quiet") +
-            Object.entries(blocks)
-              .map(([k, v]) => `${k} ${v.posts ?? v.models ?? t("dash")}`)
-              .join("; "),
-        );
-        return 0;
-      }
-      text = report.sources(cfg, lead, blocks, extra);
+      return 0;
+    } finally {
+      db.close();
     }
-    if (args.out) writeFileSync(args.out, text);
-    output(text);
-    if (args.mail)
-      output(
-        await send(
-          `New-term radar${daily ? "" : " · sources"} ${today()}`,
-          text,
-        ),
-      );
-    return 0;
-  } finally {
-    db.close();
-  }
+  });
 }
 if (
   process.argv[1] &&
@@ -261,6 +350,6 @@ if (
     })
     .catch((e) => {
       if (e.code === "commander.helpDisplayed") return;
-      console.error(errorText(e));
+      console.error(e instanceof Error ? e.stack : errorText(e));
       process.exitCode = 1;
     });

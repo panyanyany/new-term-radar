@@ -1,9 +1,13 @@
+import { McpError } from "@modelcontextprotocol/sdk/types.js";
+import { withUsageRun, usageSummary } from "../src/usage.js";
 import { it, expect, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   callMany,
+  googleSearch,
+  googleSearchResult,
   userPosts,
   trendsMany,
   timeline,
@@ -23,9 +27,15 @@ vi.mock("@modelcontextprotocol/sdk/client/index.js", () => ({
     close = mocks.close;
   },
 }));
-vi.mock("@modelcontextprotocol/sdk/client/streamableHttp.js", () => ({
-  StreamableHTTPClientTransport: class {},
-}));
+vi.mock(
+  "@modelcontextprotocol/sdk/client/streamableHttp.js",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@modelcontextprotocol/sdk/client/streamableHttp.js")
+    >()),
+    StreamableHTTPClientTransport: class {},
+  }),
+);
 const fixture = JSON.parse(readFileSync("tests/fixtures/scrappa.json", "utf8"));
 beforeEach(() => {
   vi.stubEnv("SCRAPPA_API_KEY", "test");
@@ -36,6 +46,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 it("real comparison fixture retains both scales and crops 40 days", () => {
@@ -102,7 +113,7 @@ it("pagination failure preserves stored vocabulary and does not loop", async () 
     saveSnap(state, "x_vocab", { "old model": "2026-10-15" });
     const c = loadConfig("config.example.json");
     c.x_accounts = { labs: ["OpenAI"], bloggers: [] };
-    mocks.callTool.mockRejectedValue(new Error("private header"));
+    mocks.callTool.mockRejectedValue(new McpError(-32000, "private header"));
     await expect(xNew(c, state)).rejects.toThrow("transport failed");
     expect(loadSnap(state, "x_vocab")).toEqual({ "old model": "2026-10-15" });
   } finally {
@@ -110,7 +121,7 @@ it("pagination failure preserves stored vocabulary and does not loop", async () 
   }
 });
 it("transport errors omit headers, make one attempt and close the client", async () => {
-  mocks.callTool.mockRejectedValue(new Error("secret header value"));
+  mocks.callTool.mockRejectedValue(new McpError(-32000, "secret header value"));
   let message = "";
   try {
     await callMany([["google-trends-interest", { q: "a" }]]);
@@ -155,4 +166,146 @@ it("solo crop renormalizes but comparison preserves shared scale; one session se
   ]);
   expect(cost).toBe(606);
   expect(mocks.connect).toHaveBeenCalled();
+});
+
+// 第二个端点失败时，第一个端点的收费明细仍可查询。
+it("keeps Scrappa successful charges when a later endpoint fails", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "radar-scrappa-usage-"));
+  mocks.callTool
+    .mockResolvedValueOnce({ structuredContent: { results: [] } })
+    .mockResolvedValueOnce({ isError: true });
+  try {
+    await expect(
+      withUsageRun(dir, "keywords", () =>
+        callMany([
+          ["first", {}],
+          ["second", {}],
+        ]),
+      ),
+    ).rejects.toThrow("endpoint failed");
+    const summary = usageSummary(dir, 30, "endpoint");
+    expect(summary).toMatchObject({
+      requests: 2,
+      cost_micros: 303,
+      unpriced: 1,
+    });
+    expect(
+      summary.rows.find((r: { name: string }) => r.name === "second"),
+    ).toMatchObject({ failed: 1, unpriced: 1 });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// 真实响应低热度日返回 0 + has_data=false，不应让整批五词请求失败。
+it("retains explicit zero interest for low-data days while rejecting inconsistent flags", () => {
+  const body = {
+    timeline_data: [
+      {
+        timestamp: Date.parse("2026-10-10") / 1000,
+        values: [
+          { query: "hex picker", value: 10, has_data: true },
+          { query: "small term", value: 0, has_data: false },
+        ],
+      },
+    ],
+  };
+  expect(
+    timeline(body, ["hex picker", "small term"], "2026-10-10", "2026-10-10"),
+  ).toEqual([["2026-10-10", 10, 0]]);
+  body.timeline_data[0].values[1].value = 10;
+  expect(() =>
+    timeline(body, ["hex picker", "small term"], "2026-10-10", "2026-10-10"),
+  ).toThrow("invalid Trends");
+});
+
+it("Google search validates exact name, links and duplicates and records one request", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "radar-google-"));
+  const fetch = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        organic_results: [
+          {
+            title: "Strata official",
+            snippet: "Image editing",
+            link: "https://strata.test/",
+          },
+          {
+            title: "Strata duplicate",
+            snippet: "Image editing",
+            link: "https://strata.test/",
+          },
+          {
+            title: "Stratagem",
+            snippet: "Unrelated product",
+            link: "https://other.test/",
+          },
+          { title: "Strata", snippet: "Bad URL", link: "javascript:alert(1)" },
+          {
+            title: "Strata guide",
+            snippet: "Edit images",
+            link: "https://tutorial.test/strata",
+          },
+        ],
+      }),
+    ),
+  );
+  vi.stubGlobal("fetch", fetch);
+  try {
+    const [items, cost] = await withUsageRun(dir, "keywords", () =>
+      googleSearch("Strata"),
+    );
+    expect(items.map((r) => r.url)).toEqual([
+      "https://strata.test/",
+      "https://tutorial.test/strata",
+    ]);
+    expect(cost).toBe(303);
+    const url = new URL(fetch.mock.calls[0][0]);
+    expect(url.pathname).toBe("/api/search");
+    expect(url.searchParams.get("query")).toBe('"Strata"');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(usageSummary(dir, 30, "endpoint")).toMatchObject({
+      requests: 1,
+      cost_micros: 303,
+      rows: [{ name: "/api/search" }],
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+it("Google search empty results are valid and malformed responses fail without retry", async () => {
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(new Response('{"organic_results":[]}'))
+    .mockResolvedValueOnce(new Response('{"unexpected":true}'));
+  vi.stubGlobal("fetch", fetch);
+  expect(await googleSearch("term")).toEqual([[], 303]);
+  await expect(googleSearch("term")).rejects.toThrow("missing organic results");
+  expect(fetch).toHaveBeenCalledTimes(2);
+});
+it("普通搜索不加引号、不要求原词完整匹配，保留过滤前原始结果", async () => {
+  const results = [
+    {
+      title: "Pokémon TCG Pocket",
+      snippet: "Play online",
+      link: "https://pokemon.test",
+    },
+    { title: "No snippet", link: "https://other.test" },
+    { title: "Invalid", link: "javascript:alert(1)" },
+  ];
+  const fetch = vi
+    .fn()
+    .mockResolvedValue(
+      new Response(JSON.stringify({ organic_results: results })),
+    );
+  vi.stubGlobal("fetch", fetch);
+  const result = await googleSearchResult(
+    "pokémon trading card game pocket",
+    "broad",
+  );
+  expect(new URL(fetch.mock.calls[0][0]).searchParams.get("query")).toBe(
+    "pokémon trading card game pocket",
+  );
+  expect(result.evidence).toHaveLength(2);
+  expect(result.rawResults).toEqual(results);
 });

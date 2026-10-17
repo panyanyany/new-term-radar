@@ -33,18 +33,37 @@
   },
   "usecases": {
     "per_day": 5,
-    "model": "claude-sonnet-4-6",
+    "model": "deepseek-v4.1-flash",
     "min_volume": 50,
     "trends_max": 10,
     "recheck_days": 3,
-    "location_code": 2840,
-    "benchmark": "gpts",
+    "benchmark": "hex picker",
     "min_daily": 300,
     "related": true,
     "related_geo": "US",
     "country_trends": true,
     "country_min_volume": 1000,
-    "country_max": 8
+    "country_max": 8,
+    "benchmark_daily": 2500
   },
-  "gsc": {}
+  "gsc": {},
+  "pages": {
+    "media.io": {
+      "url": "https://www.media.io/"
+    },
+    "lightx-blog": {
+      "url": "https://www.lightxeditor.com/blog/",
+      "include": "^/blog/[^/]+/?$",
+      "exclude": "^/blog/(?:ai|photo-editing|video-editing|design|uncategorized)/?$"
+    },
+    "renderpop": {
+      "url": "https://www.renderpop.app/",
+      "exclude": "^/(?:create|assets|login|signup|pricing)/?$"
+    }
+  },
+  "trends_roots": {
+    "roots": [],
+    "windows": [1, 3, 7],
+    "category_code": 8
+  }
 }

@@ -4,12 +4,22 @@ import { pathToFileURL } from "node:url";
 import { config as dotenv } from "dotenv";
 import { jsonFetch } from "../src/core.js";
 // 摘要只列优先名称和最强仓库，完整 Markdown 由 Telegram 附件承载。
-export function summary(md: string): string {
+export function summary(md: string, includeCosts = true): string {
+  // 简报正文保持新词、旧词两段；费用段仅在私人会话摘要和附件中保留。
+  if (md.startsWith("## 1. 当天新词"))
+    return (includeCosts ? md : withoutCosts(md)).trim().slice(0, 3500);
   const lines = ["🛰 新词雷达"],
     cost = md.match(
-      /(?:本次(?: AIsa)?数据(?:花费|成本估算)|Data cost estimate(?: this run)?)[:：]\s*(\$[0-9]+(?:\.[0-9]+)?)/i,
+      /(?:本次(?:\s*AIsa)?\s*数据(?:花费|成本估算)|本次总成本估算|(?:Data|Total) cost estimate(?: this run)?)[:：]\s*(\$[0-9]+(?:\.[0-9]+)?)/i,
     );
-  if (cost) lines.push(`本次数据成本估算 ${cost[1]}`);
+  if (includeCosts && cost)
+    lines.push(
+      `${/(?:本次总成本|Total cost)/i.test(cost[0]) ? "本次总成本估算" : "本次数据成本估算"} ${cost[1]}`,
+    );
+  const unpriced = md.match(
+    /(?:费用估算不完整[^\n]*|Cost estimate incomplete[^\n]*)/i,
+  );
+  if (includeCosts && unpriced) lines.push(unpriced[0]);
   const rows = md
     .split("\n")
     .filter(
@@ -45,6 +55,25 @@ export function summary(md: string): string {
     );
   return lines.join("\n");
 }
+// 群聊附件移除费用合计、未计价提示与费用分布表，原始本地报告保留。
+export function withoutCosts(md: string): string {
+  md = md.replace(/^## 3\. 花费[\s\S]*$/m, "").trimEnd();
+  let costTable = false;
+  return md
+    .split("\n")
+    .filter((line) => {
+      if (/^\|\s*(?:费用来源|Cost source)\s*\|/i.test(line)) {
+        costTable = true;
+        return false;
+      }
+      if (costTable && line.trimStart().startsWith("|")) return false;
+      costTable = false;
+      return !/(?:本次(?:\s*AIsa)?\s*数据(?:花费|成本估算)|本次总成本估算|(?:Data|Total) cost estimate|费用估算不完整|Cost estimate incomplete|^已计价合计)/i.test(
+        line,
+      );
+    })
+    .join("\n");
+}
 async function post(
   url: string,
   body: BodyInit,
@@ -69,13 +98,17 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     return 1;
   }
   dotenv({ quiet: true });
-  const top = summary(readFileSync(path, "utf8")),
+  const markdown = readFileSync(path, "utf8"),
     token = process.env.TELEGRAM_BOT_TOKEN?.trim(),
     chat = process.env.TELEGRAM_CHAT_ID?.trim(),
     hook = process.env.FEISHU_GROUP_HOOK?.trim(),
     results: boolean[] = [];
   if (token && chat) {
-    const url = `https://api.telegram.org/bot${token}/`,
+    // Bot API 的私聊 ID 为正整数；群/超级群为负数，频道用户名也不作为私聊。
+    const privateChat = /^[1-9]\d*$/.test(chat),
+      top = summary(markdown, privateChat),
+      document = privateChat ? markdown : withoutCosts(markdown),
+      url = `https://api.telegram.org/bot${token}/`,
       ok = await post(
         url + "sendMessage",
         JSON.stringify({
@@ -92,7 +125,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       form.set("caption", basename(path) + " · 新词雷达日报");
       form.set(
         "document",
-        new Blob([readFileSync(path)], {
+        new Blob([document], {
           type: "text/markdown; charset=utf-8",
         }),
         basename(path),
@@ -110,7 +143,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       hook,
       JSON.stringify({
         msg_type: "text",
-        content: { text: top.slice(0, 18000) },
+        content: { text: summary(markdown, false).slice(0, 18000) },
       }),
       { "Content-Type": "application/json" },
     );

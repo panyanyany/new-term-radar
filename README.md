@@ -26,7 +26,7 @@ One example it was built around: [Niko1221/Strata](https://github.com/Niko1221/S
 
 | Signal | What it catches | Needs | Cost |
 |---|---|---|---|
-| ① X | Names the accounts in your list used for the first time in 60 days | Twitter AIO key (Scrappa backup) | AIO plan billing; not included in the report estimate |
+| ① X | Names the accounts in your list used for the first time in 60 days | Twitter AIO key (Scrappa backup) | $0.0004 per request; lookup and pagination counted separately |
 | ① Hugging Face | Models new to the trending top 50; quantised copies grouped under the base name | nothing | free |
 | ② GitHub breakout | A repo under 14 days old averaging 200+ stars a day, or +400 since yesterday; adds the search variants people use ("niko strata") | nothing (a GitHub token raises the rate limit) | free |
 | ③ Sitemaps | Words that several new URLs on a site share and its older URLs rarely carried | the sitemaps you list | free |
@@ -36,7 +36,7 @@ One example it was built around: [Niko1221/Strata](https://github.com/Niko1221/S
 | Keyword table | For the day's new names: the generic search terms behind them (what people do with the new thing), each sized and given a decision | Twitter AIO, AIsa and Scrappa keys; [GoAnyAPI](https://goanyapi.com) optional | Provider usage plus the AIO plan; see costs guide |
 | Name judge | A small model scores every term: the name of one specific thing, or a common word? | AIsa key | a fraction of a cent per run |
 
-The $0.003 AIsa X request rate is a backup-provider rate. Default X requests use the Twitter AIO subscription; its plan price and quota have not been verified, so the report excludes those charges. Other provider costs and billing boundaries are documented in [.devguide/costs.md](.devguide/costs.md).
+The $0.003 AIsa X request rate is a backup-provider rate. Default X requests use Twitter AIO, estimated at the user-confirmed $0.0004 per request. Reports also estimate model token costs using OpenRouter reference rates. Other provider costs and billing boundaries are documented in [.devguide/costs.md](.devguide/costs.md).
 
 ## The keyword table
 
@@ -54,14 +54,14 @@ A name is half of what you need. "SynthID Detector" has a short life as a keywor
 
 How it is made (`src/usecases.ts`):
 
-1. **Evidence**: the most-liked posts that mention the name (X advanced search) and, for a repository, its README.
+1. **Evidence**: one Scrappa Google search per name, using up to eight matching titles, snippets and links, plus the repository README when available. No webpage body crawling. Set `KEYWORD_EVIDENCE_PROVIDER=x` to explicitly use the retained X search.
 2. **Phrases**: a model reads the evidence and writes the keyword an ordinary person would type for each job it sees people doing, with a quote that backs it. A phrase built on another product's name ("photoshop alternative") is kept and marked ⚠: demand often hangs on the incumbent, and whether to use someone's brand is your call.
    With a GoAnyAPI key (optional, below) the radar also takes **Google Trends' related queries** for the name: what people really searched together with it. For SynthID Detector that gave "ai photo detector", "google ai detector" and "ai detector"; these rows carry 🔎. Queries that hold the name are listed as its long-tails ("photocraft download", "nano banana 2.1 vs pro"). Queries that are themselves the names of other rising things ("gpt image 2.5" beside "nano banana 2.1") are kept as leads of their own.
 3. **Screen**: a second call scores how well the name answers each phrase, marks brands, and spots the names of other things; the loosely related ones are dropped. For Claude Haiku 5.5 it dropped all six proposed ("ai coding assistant", "github copilot alternative"); for SynthID Detector it kept all five.
-4. **Volume**: Google Ads monthly searches for the rest, one batch call. Phrases under `min_volume` are dropped; most are.
-5. **Trends**, twice per row: the term alone gives the shape (new or not, the day it started rising, the peak, the last week against the week before, what it is doing now); the term beside a benchmark keyword (`gpts` by default) gives the size.
+4. **Batched Trends**: each request compares `hex picker` first, followed by up to four target keywords, sharing one scale for shape and size.
+5. **Estimated volume**: assume `hex picker` gets about 2,500 searches/day. Estimate daily searches from the ratio of mean interest over the last seven settled dates; estimated monthly volume is the unrounded daily estimate × 30. Missing reference interest or absent target signal leaves size blank. Filter candidates by estimated monthly volume.
 
-Searches a day are estimates. A generic term's come from its own Google Ads volume, moved to today along its own Trends curve. The benchmark is then sized from those terms, and a name, which has no volume data yet, is sized against the benchmark.
+No Google Ads API calls are made. All sizes are Trends estimates based on the supplied reference assumption, not measured monthly volumes. Reference errors scale every estimate proportionally.
 
 Decision: **prioritize** = rose in the last 30 days, still up, at least `min_daily` searches a day. **watch** = rose but smaller, too early to read, or flat with steady demand of that size. **skip** = fading, or flat and small.
 
@@ -73,7 +73,7 @@ What to expect from it, from the first eight names we ran it on:
 - The table's dependable use today is to tell you **which existing demand a new thing serves and how big it is** ("ai image detector", about 2,500 searches a day). Whether generic terms follow the names is what the 14-day review will show, and we have no result yet.
 - For pure model releases (Claude Haiku 5.5, Nano Banana 2.1) the evidence was announcements and benchmarks, and the phrases proposed were weak ("ai coding assistant"). It works better for products and repositories that do one job.
 - **Google Trends' last two days are not settled.** For unrelated terms they came back as 0 and then 100, which reads as a spike. Our first pass was fooled by exactly this; every reader in the code now drops those two days, and a rise must last two days to count.
-- Google Ads volumes run about two months behind. Trends reads nothing reliable for terms under a few hundred searches a month.
+- Trends has limited resolution for low-interest terms; a zero index does not prove zero searches.
 
 ### When a source is missing or down
 
@@ -94,9 +94,9 @@ Set `"usecases": {"per_day": 0}` or pass `--skip usecases` to turn it off.
 
 ## Data sources and keys
 
-Account timelines and global X post search default to Twitter AIO: set `TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`. The original implementations remain available: `X_TIMELINE_PROVIDER=scrappa` and `X_SEARCH_PROVIDER=aisa`. Selection is independent; failures do not automatically trigger another paid provider. Search locally filters text, dates, likes and replies, following at most five pages until twelve qualifying posts are available. AIO subscription charges are excluded from the report estimate.
+Account timelines and global X post search default to Twitter AIO: set `TWITTER_AIO_RAPIDAPI_KEY` or `~/.twitter-aio/key`. The original implementations remain available: `X_TIMELINE_PROVIDER=scrappa` and `X_SEARCH_PROVIDER=aisa`. Selection is independent; failures do not automatically trigger another paid provider. Search locally filters text, dates, likes and replies, following at most five pages until twelve qualifying posts are available. Twitter AIO requests are estimated at $0.0004 each; model costs use returned token usage and OpenRouter reference rates.
 
-Worldwide Google Trends uses [Scrappa MCP](https://scrappa.co/docs/mcp-integration), with `SCRAPPA_API_KEY`. [AIsa](https://go.aisa.one/yansen-zhu) supplies Google Ads volume, domain data, model calls and optional backup X search, with `AISA_API_KEY`. See [.devguide/twitter-aio.md](.devguide/twitter-aio.md) for credentials and switching.
+Worldwide Google Trends uses [Scrappa MCP](https://scrappa.co/docs/mcp-integration), with `SCRAPPA_API_KEY`. [AIsa](https://go.aisa.one/yansen-zhu) supplies domain data, model calls and optional backup X search, with `AISA_API_KEY`. See [.devguide/twitter-aio.md](.devguide/twitter-aio.md) for credentials and switching.
 
 Related queries remain on GoAnyAPI because its response distinguishes `top` and `rising`. Rising queries come first; top queries supplement keyword candidates. Only rising queries can produce leads for other new products. The tested Scrappa response is an unclassified list and cannot replace rising queries.
 
@@ -177,7 +177,7 @@ and from `sources`:
 | `breakout` | `window_days`, `min_stars`, `velocity_min` (stars a day), `delta_min` (stars since yesterday) |
 | `new_sites` | `queries`: a name and a SQL LIKE pattern on the domain (`"%ai%"`), one paid query each; `weekday` (0 = Monday) |
 | `review` | `after_days` (14) and `per_day` (5 leads a day) |
-| `usecases` | The keyword table. `per_day` (names read a day, 0 = off), `model`, `benchmark` (the keyword sizes are compared with), `min_volume` (monthly searches a phrase needs), `min_daily` (searches a day for "prioritize"), `recheck_days` (3), `related` (use related queries when `GOANYAPI_API_KEY` is set), `related_geo` (`US`), `country_trends` (read the bigger rows' curves from that country), `country_min_volume` (1000) and `country_max` (8) |
+| `usecases` | The keyword table. `per_day` (names read a day, 0 = off), `model`, `benchmark` (default `hex picker`), `benchmark_daily` (assumed 2,500/day), `min_volume` (estimated monthly searches a phrase needs), `min_daily` (searches a day for "prioritize"), `recheck_days` (3), `related` (use related queries when `GOANYAPI_API_KEY` is set), `related_geo` (`US`), `country_trends` (read the bigger rows' curves from that country), `country_min_volume` (1000) and `country_max` (8) |
 | `gsc` | `site` (`sc-domain:example.com`) and `token_file`. Leave `{}` to turn the signal off |
 
 Please read each site's robots.txt before you add its sitemap, and keep `pause` at or above its crawl-delay. The example config makes a few dozen requests a day in total, spaced by `pause`.
@@ -301,3 +301,7 @@ The diagram is drawn by `scripts/make-diagram.ts` (`pnpm diagram`) (needs `rsvg-
 MIT. Extracted from the radar that runs daily behind [agentskillshub.top](https://agentskillshub.top).
 
 <!-- mcp-name: io.github.zhuyansen/new-term-radar -->
+
+Request-level costs are stored in `api_usage` in `state/radar.db`. Run `pnpm costs --days 30` for provider totals, use `--by module|model|endpoint|day` to change grouping, and `--json` to export statistics. Failed requests remain recorded; unknown costs are counted separately. See [.devguide/costs.md](.devguide/costs.md).
+
+Phrase generation and screening use `deepseek-v4.1-flash` through AIsa. Estimates use supplied rates of $0.283/$1.131 per million input/output tokens, with cached input at the regular input rate. Name scoring continues to use GPT-4.1 mini.

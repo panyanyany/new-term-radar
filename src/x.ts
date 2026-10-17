@@ -71,6 +71,7 @@ export async function search(
     let tweets: Data[], next: string | undefined;
     if (source === "twitter-aio") {
       const batch = await aio.searchPage(query, cursor);
+      cost += aio.REQUEST_COST_MICROS;
       tweets = batch.tweets;
       next = batch.cursor;
     } else {

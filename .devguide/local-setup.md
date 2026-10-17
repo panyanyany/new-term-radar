@@ -18,7 +18,7 @@ cp config.example.json config.json  # 已有配置不要覆盖
 |---|---|
 | `lang` | `en` / `zh`，报告语言 |
 | `x_accounts.labs/bloggers` | 要读的 X 账号 |
-| `sitemaps` | sitemap 地址、分片正则、抓取间隔和语言路径合并 |
+| `sitemaps` | 当前配置为空，不抓取 sitemap；模块保留，可显式配置地址、分片正则、抓取间隔和语言路径合并 |
 | `topics` | 主题名与匹配正则 |
 | `known_terms/stop_words` | 已覆盖名称、额外停用词 |
 | `judge.model/min_score` | 名称判定模型与展示阈值 |
@@ -68,3 +68,13 @@ pnpm check  # 格式、业务与测试类型检查、Vitest、构建
 ## X 数据源
 
 默认账号采集与高赞搜索均用 Twitter AIO，设置 `TWITTER_AIO_RAPIDAPI_KEY` 或 `~/.twitter-aio/key`。保留 `X_TIMELINE_PROVIDER=scrappa` 与 `X_SEARCH_PROVIDER=aisa` 显式切换旧方案；不会自动跨供应商重试。详细凭据优先级、分页和部署规则见 [twitter-aio.md](twitter-aio.md)。
+
+关键词量级配置：`usecases.benchmark="hex picker"`、`benchmark_daily=2500`。每批参考词加最多四词，通过全球 Trends 比值估算日搜及日搜乘 30 的月量，不调用 Google Ads。`min_volume` 是估算月量门槛，`trends_max` 是展示通用词数量上限。
+
+模型配置：`usecases.model=deepseek-v4.1-flash` 用于提词及筛选，仍由 AIsa chat 调用；`judge.model=gpt-4.1-mini` 用于名称评分。DeepSeek 输入/输出单价采用用户提供的 $0.283/$1.131 每百万 token，详见 costs.md。
+
+关键词取证默认 Scrappa Google Search，复用 `SCRAPPA_API_KEY` / 既有本机凭据。`KEYWORD_EVIDENCE_PROVIDER=x pnpm radar keywords "产品名"` 显式改用 X，`X_SEARCH_PROVIDER=aisa` 可进一步选择旧 AIsa 搜索；默认 Google 模式不受 `X_SEARCH_PROVIDER` 影响。`SCRAPPA_API_URL` 仅覆盖 REST API 域名，MCP 地址仍由 `SCRAPPA_MCP_URL` 控制。
+
+`trends_roots: { roots: ["game"], windows: [1, 3, 7], category_code: 8 }` 启用根词 Rising 发现；需要现有 AIsa 与 Scrappa 凭据。`--skip trends` 禁用。三天采用 UTC 日期区间，接口日期精度不保证滚动 72 小时。
+
+根词参考词可通过 `trends_roots.benchmark` 独立设置，未设置时兼容 `usecases.benchmark`。根词、窗口、类目与批量数量在配置加载阶段校验。七天筛选与超大曲线有限重查详见 [trends.md](trends.md)。

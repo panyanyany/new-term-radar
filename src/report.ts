@@ -1,3 +1,7 @@
+import { costSummary, costLines } from "./cost-report.js";
+export { costSummary, costLines } from "./cost-report.js";
+import { cell, keywordTable } from "./keyword-report.js";
+export { cell, keywordTable } from "./keyword-report.js";
 import { t, known, unique, type Data, type Config } from "./core.js";
 import * as judge from "./judge.js";
 import { degraded } from "./usecases.js";
@@ -11,14 +15,10 @@ export const KINDS = [
   "cosearch",
   "watch",
 ];
-export const cell = (s: string) => s.replaceAll("|", "/").replaceAll("\n", " ");
 const score = (r: Data) =>
   r.named != null ? Number(r.named).toFixed(2) : t("dash");
 const state = (b: Data, ok: string) =>
   b.error || (b.skipped ? t("skipped") : ok);
-const cost = (...blocks: Data[]) =>
-  "$" +
-  (blocks.reduce((s, b) => s + Number(b.cost_micros ?? 0), 0) / 1e6).toFixed(3);
 // 多信号合并后优先展示名称，未评分项仍保留。
 export async function leads(
   cfg: Config,
@@ -80,10 +80,16 @@ export function usecaseLeads(uc: Data): Data[] {
         kinds: ["usecase"],
         variants: [r.phrase],
         signals: [
-          t("note_usecase", {
-            names: r.names.join(", "),
-            volume: r.volume ?? 0,
-          }),
+          t(
+            r.volume_source === "trends_estimate" ||
+              uc.volume_source === "trends_estimate"
+              ? "note_usecase_estimate"
+              : "note_usecase",
+            {
+              names: r.names.join(", "),
+              volume: r.volume ?? t("dash"),
+            },
+          ),
         ],
       })),
     ...(uc.cosearch ?? []).map((r: Data) => ({
@@ -93,90 +99,6 @@ export function usecaseLeads(uc: Data): Data[] {
       signals: [t("note_cosearch", { name: r.with })],
     })),
   ];
-}
-export function keywordTable(cfg: Config, uc: Data): string[] {
-  if (uc.skipped) return [];
-  const lines = ["", t("uc_h"), ""];
-  if (uc.error) return [...lines, uc.error];
-  if (!uc.names?.length) return [...lines, t("uc_none")];
-  const c = cfg.usecases;
-  if (degraded(uc)) lines.push(t("uc_degraded"), "");
-  lines.push(
-    t("uc_intro", {
-      names: uc.names.join(", "),
-      proposed: uc.proposed,
-      relevant: uc.relevant,
-      kept: uc.kept,
-      min: c.min_volume,
-      month: uc.volume_month || "?",
-    }),
-    uc.bench_daily
-      ? t("uc_bench", { bench: uc.benchmark, bench_daily: uc.bench_daily })
-      : t("uc_bench_none", { bench: uc.benchmark }),
-    "",
-    t("uc_cols", { bench: uc.benchmark }),
-    "|---|---|---|---|---|---|---|---|---|---|---|",
-  );
-  for (const r of uc.rows) {
-    const generic = r.kind === "generic",
-      none = r.no_data,
-      peak =
-        "peak_vs" in r
-          ? `${r.peak_vs} vs ${Number(r.bench_level).toFixed(1)}`
-          : t("dash");
-    lines.push(
-      `| **${r.phrase}**${r.source === "searched" ? " 🔎" : ""}${generic && r.brand ? " ⚠" : ""} | ${t(generic ? "uc_type_generic" : "uc_type_name")} | ${r.names.join(", ") || t("dash")} | ${none ? t("dash") : t(r.new ? "uc_yes" : "uc_no")} | ${r.per_day ?? t("dash")} | ${r.started || t("dash")} | ${peak} | ${none ? t("dash") : r.peak_day} | ${r.momentum != null ? "×" + Number(r.momentum).toFixed(1) : t("dash")} | ${none ? t("uc_now_none") : t("uc_now_" + r.now)}${r.trend_geo ? " (" + uc.geo + ")" : ""} | ${t("uc_" + r.decision)} |`,
-    );
-  }
-  lines.push("", t("uc_rules", { min_daily: c.min_daily }));
-  if (uc.rows.some((r: Data) => r.kind === "generic" && r.brand))
-    lines.push(t("uc_brand_note"));
-  if (uc.rows.some((r: Data) => r.trend_geo))
-    lines.push(t("uc_geo_note", { geo: uc.geo }));
-  if (uc.country_errors?.length)
-    lines.push(t("uc_geo_err", { names: uc.country_errors.join("; ") }));
-  if (uc.rows.some((r: Data) => r.source === "searched"))
-    lines.push(t("uc_searched_note"));
-  const said = uc.rows
-    .filter(
-      (r: Data) =>
-        r.kind === "generic" && r.evidence && r.source !== "searched",
-    )
-    .map(
-      (r: Data) =>
-        `- **${r.phrase}** (${r.names.join(", ")}): “${cell(r.evidence)}”`,
-    );
-  if (said.length) lines.push("", t("uc_said_h"), ...said);
-  if (Object.keys(uc.tails ?? {}).length)
-    lines.push(
-      "",
-      t("uc_tails_h"),
-      ...Object.entries(uc.tails).map(
-        ([n, v]) => `- **${n}**: ${(v as string[]).slice(0, 10).join(", ")}`,
-      ),
-    );
-  if (uc.cosearch?.length)
-    lines.push(
-      "",
-      t("uc_cosearch_h") +
-        " " +
-        uc.cosearch
-          .map((x: Data) =>
-            t("uc_cosearch_item", { term: x.term, name: x.with }),
-          )
-          .join(", "),
-    );
-  if (uc.no_evidence?.length)
-    lines.push("", t("uc_no_evidence", { names: uc.no_evidence.join(", ") }));
-  if (uc.posts_error)
-    lines.push("", t("uc_posts_err", { why: uc.posts_error }));
-  if (uc.related_errors?.length)
-    lines.push(
-      "",
-      t("uc_related_err", { names: uc.related_errors.join("; ") }),
-    );
-  else if (!uc.related) lines.push("", t("uc_related_off"));
-  return lines;
 }
 export function clip(s: string, n: number): string {
   if (s.length <= n) return s;
@@ -228,7 +150,7 @@ export function sources(
     ["record", "st_record"],
   ])
     if (extra[key]?.error) lines.push(t(label, { state: extra[key].error }));
-  lines.push(t("cost", { cost: cost(b.x) }));
+  lines.push(...costLines(b.x, extra.judge ?? {}));
   return lines.join("\n") + "\n";
 }
 export function topicLines(
@@ -300,6 +222,22 @@ export function daily(
     .slice(0, 15)
     .map((r) => r.term);
   if (rest.length) lines.push("", t("other_terms") + rest.join(", "));
+  // 网页新增候选独立展示，不经过产品名称评分或激增频次门槛。
+  const pages = b.sitemap?.pages;
+  if (pages && Object.keys(pages.sites ?? {}).length) {
+    lines.push("", t("pages_h"), "", t("pages_cols"), "|---|---|---|---|");
+    for (const row of pages.candidates ?? [])
+      lines.push(
+        `| ${cell(row.site)} | ${cell(row.keyword || t("pages_unknown"))} | ${t("pages_" + row.basis)} | [${t("pages_link")}](${row.url.replaceAll("(", "%28").replaceAll(")", "%29")}) |`,
+      );
+    for (const [site, status] of Object.entries(pages.sites) as [
+      string,
+      Data,
+    ][])
+      lines.push(
+        `- ${cell(site)}: ${status.error ? cell(status.error) : status.first_run ? t("pages_baseline", { n: status.urls }) : t("pages_status", { n: status.urls, added: status.new })}`,
+      );
+  }
   lines.push(...topicLines(cfg, lead, b, gsc));
   const recent = extra.recent_sources ?? { skipped: true };
   if (!recent.skipped) {
@@ -446,7 +384,13 @@ export function daily(
   ])
     if (extra[k]?.error) lines.push(t(label, { state: extra[k].error }));
   lines.push(
-    t("cost", { cost: cost(b.x, rev, b.newsite ?? {}, extra.usecases ?? {}) }),
+    ...costLines(
+      b.x,
+      rev,
+      b.newsite ?? {},
+      extra.usecases ?? {},
+      extra.judge ?? {},
+    ),
   );
   return lines.join("\n") + "\n";
 }

@@ -1,10 +1,30 @@
+import {
+  SourceDataError,
+  SourceConfigError,
+  SourceTransportError,
+  expectedSourceError,
+} from "./source-errors.js";
+import { McpError } from "@modelcontextprotocol/sdk/types.js";
+import { tracked } from "./usage.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import {
+  StreamableHTTPClientTransport,
+  StreamableHTTPError,
+} from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { utcToday, shift, days, round, type Point, type Data } from "./core.js";
-export class ScrappaError extends Error {
+import {
+  jsonFetch,
+  compact,
+  utcToday,
+  shift,
+  days,
+  round,
+  type Point,
+  type Data,
+} from "./core.js";
+export class ScrappaError extends SourceDataError {
   override name = "ScrappaError";
 }
 // 复用本机已配置密钥，不将令牌写入项目文件或错误日志。
@@ -27,16 +47,22 @@ export function key(): string {
   }
 }
 export function decode(result: Data): Data {
+  if (!result || typeof result !== "object")
+    throw new ScrappaError("Scrappa returned an invalid response");
   if (result.isError)
     throw new ScrappaError("Scrappa endpoint failed (no automatic retry)");
   let body = result.structuredContent;
   if (body == null) {
-    try {
-      body = JSON.parse(
-        result.content.find((c: Data) => c.type === "text").text,
-      );
-    } catch {
+    const text = Array.isArray(result.content)
+      ? result.content.find((c: Data) => c?.type === "text")?.text
+      : undefined;
+    if (typeof text !== "string")
       throw new ScrappaError("Scrappa returned non-JSON content");
+    try {
+      body = JSON.parse(text);
+    } catch (cause) {
+      if (!(cause instanceof SyntaxError)) throw cause;
+      throw new ScrappaError("Scrappa returned non-JSON content", { cause });
     }
   }
   if (!body || typeof body !== "object" || Array.isArray(body) || body.error)
@@ -49,7 +75,9 @@ export async function callMany(
   if (!requests.length) return [[], 0];
   const token = key();
   if (!token)
-    throw new ScrappaError("set SCRAPPA_API_KEY or configure ~/.scrappa/key");
+    throw new SourceConfigError(
+      "set SCRAPPA_API_KEY or configure ~/.scrappa/key",
+    );
   const client = new Client({ name: "new-term-radar", version: "0.2.1" });
   const transport = new StreamableHTTPClientTransport(
     new URL(process.env.SCRAPPA_MCP_URL ?? "https://scrappa.co/mcp"),
@@ -60,22 +88,39 @@ export async function callMany(
     const out: Data[] = [];
     for (const [endpoint, params] of requests)
       out.push(
-        decode(
-          await client.callTool(
-            {
-              name: "call-endpoint",
-              arguments: { endpoint, params: JSON.stringify(params) },
-            },
-            undefined,
-            { timeout: 120000 },
-          ),
+        await tracked(
+          { provider: "scrappa", endpoint },
+          async () =>
+            decode(
+              await client.callTool(
+                {
+                  name: "call-endpoint",
+                  arguments: { endpoint, params: JSON.stringify(params) },
+                },
+                undefined,
+                { timeout: 120000 },
+              ),
+            ),
+          (body) => ({
+            cost_micros: body ? 303 : null,
+            pricing_source: "Scrappa Starter estimate before free credits",
+            rates: { request_micros: 303 },
+          }),
         ),
       );
     return [out, out.length * 303];
   } catch (e) {
     if (e instanceof ScrappaError) throw e;
-    throw new ScrappaError(
+    if (
+      !(e instanceof McpError) &&
+      !(e instanceof StreamableHTTPError) &&
+      !expectedSourceError(e) &&
+      !(e instanceof TypeError && e.message === "fetch failed")
+    )
+      throw e;
+    throw new SourceTransportError(
       `Scrappa MCP transport failed: ${e instanceof Error ? e.name : "Error"}`,
+      { cause: e },
     );
   } finally {
     await client.close().catch(() => {});
@@ -161,10 +206,12 @@ export function timeline(
           p.values.length !== keywords.length ||
           p.values.some(
             (r: Data, i: number) =>
-              r.query !== keywords[i] || r.has_data === false,
+              r.query !== keywords[i] ||
+              (r.has_data === false && r.value !== 0),
           )
         )
           throw new Error();
+        // 上游低热度日以 value=0/has_data=false 表示，保留其零刻度而非判为损坏响应。
         values = p.values.map((r: Data) => r.value);
       }
       if (
@@ -226,4 +273,108 @@ export async function trendsMany(
     out[r.call_id] = points;
   });
   return [out, cost];
+}
+
+// Google 取证只请求首页摘要；根词来源可选普通搜索并保留原始结果供 AI 分类。
+export interface SearchEvidence {
+  title: string;
+  text: string;
+  url: string;
+  source: string;
+}
+export interface GoogleSearchResult {
+  query: string;
+  rawResults: Data[];
+  evidence: SearchEvidence[];
+  costMicros: number;
+}
+// 结构化输出使普通搜索与原始结果只有一个返回通道。
+export async function googleSearchResult(
+  name: string,
+  mode: "exact" | "broad" = "exact",
+): Promise<GoogleSearchResult> {
+  const broad = mode === "broad";
+  const token = key();
+  if (!token)
+    throw new SourceConfigError(
+      "set SCRAPPA_API_KEY or configure ~/.scrappa/key",
+    );
+  const url = new URL(
+    "/api/search",
+    process.env.SCRAPPA_API_URL ?? "https://scrappa.co",
+  );
+  url.searchParams.set("query", broad ? name : `"${name.replace(/"/g, " ")}"`);
+  url.searchParams.set("hl", "en");
+  url.searchParams.set("gl", "us");
+  let body: Data;
+  try {
+    body = await tracked(
+      { provider: "scrappa", endpoint: "/api/search" },
+      () =>
+        jsonFetch(url.toString(), { headers: { "X-API-KEY": token } }, 90000),
+      (b) => ({
+        cost_micros: b && !b.error ? 303 : null,
+        success: b ? !b.error : undefined,
+        pricing_source: "Scrappa Starter estimate before free credits",
+        rates: { request_micros: 303 },
+      }),
+    );
+  } catch (cause) {
+    if (!expectedSourceError(cause)) throw cause;
+    throw new SourceTransportError(
+      "Google search request failed (no automatic retry)",
+      { cause },
+    );
+  }
+  if (body.error || !Array.isArray(body.organic_results))
+    throw new ScrappaError("Google search missing organic results");
+  const escaped = name
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\s+/g, "\\s+");
+  const match = new RegExp(
+    `(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`,
+    "iu",
+  );
+  const seen = new Set<string>(),
+    out: SearchEvidence[] = [];
+  for (const row of body.organic_results) {
+    if (
+      !row ||
+      typeof row.title !== "string" ||
+      (!broad && typeof row.snippet !== "string") ||
+      typeof row.link !== "string"
+    )
+      continue;
+    let link: URL;
+    try {
+      link = new URL(row.link);
+    } catch {
+      continue;
+    }
+    if (
+      !["http:", "https:"].includes(link.protocol) ||
+      seen.has(link.href) ||
+      (!broad && !match.test(compact(row.title + " " + row.snippet)))
+    )
+      continue;
+    seen.add(link.href);
+    out.push({
+      title: compact(row.title).slice(0, 200),
+      text: compact(row.snippet ?? "").slice(0, 800),
+      url: link.href,
+      source: "google",
+    });
+    if (out.length === 8) break;
+  }
+  return {
+    query: url.searchParams.get("query")!,
+    rawResults: body.organic_results,
+    evidence: out,
+    costMicros: 303,
+  };
+}
+// 旧关键词流程保持精确搜索及原元组接口，避免根词改动影响其他来源。
+export async function googleSearch(name: string): Promise<[Data[], number]> {
+  const result = await googleSearchResult(name, "exact");
+  return [result.evidence, result.costMicros];
 }

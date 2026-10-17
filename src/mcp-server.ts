@@ -50,9 +50,13 @@ export function createServer(): McpServer {
       );
       return answer({
         table_markdown: text,
+        run_id: uc.run_id,
+        usage: uc.usage,
+        unpriced_calls: uc.unpriced_calls ?? 0,
         rows: uc.rows ?? [],
         incomplete: degraded(uc),
-        cost_usd: round((uc.cost_micros ?? 0) / 1e6, 3),
+        cost_usd: round((uc.cost_micros ?? 0) / 1e6, 4),
+        model_unpriced_calls: uc.model_unpriced_calls ?? 0,
       });
     },
   );
