@@ -109,17 +109,18 @@ it("表格关联本轮曲线，蓝参考和红当前共用固定尺度，保留�
       .get(),
   ).toEqual([
     "#",
-    "Google Trends · 近7天",
+    "近7天趋势",
     "词语",
     "发现时间",
     "趋势分类",
     "AI 分类",
-    "一句话解释",
+    "解释",
   ]);
   expect($(".reference-line").attr("d")).toBe("M26.00,8.00 L208.00,30.00");
   expect($(".term-line").attr("d")).toBe("M26.00,52.00 L208.00,8.00");
-  expect($(".reference-name").text()).toBe("参考词：reference <word>");
-  expect($(".reference-name word")).toHaveLength(0);
+  expect($(".chart-legend").text()).toBe("参考词：reference <word>当前词");
+  expect($(".reference-name")).toHaveLength(0);
+  expect($(".chart-legend word")).toHaveLength(0);
   expect(html).not.toContain("PRIVATE_EVIDENCE");
   const target = new URL($(".chart-link").attr("href")!);
   expect(target.searchParams.get("q")).toBe("reference <word>,New Tool");

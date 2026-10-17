@@ -9,13 +9,9 @@ p { margin:0; }
 .masthead { display:flex; justify-content:space-between; align-items:center; gap:16px; border-bottom:1px solid var(--ink); padding-bottom:10px; }
 .wordmark { display:flex; align-items:center; gap:8px; font-weight:650; letter-spacing:.04em; text-decoration:none; }
 .mark { width:12px; height:12px; border:1px solid var(--accent); border-radius:50%; box-shadow:inset 0 0 0 2px var(--paper); background:var(--accent); }
-.edition { color:var(--muted); font:11px/1.5 ui-monospace,monospace; letter-spacing:.08em; }
-.intro { padding:18px 0 12px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
-h1 { font-size:24px; line-height:1.35; font-weight:650; margin:0 0 4px; }
-.subtitle,.updated { color:var(--muted); font-size:12px; }
-.updated { text-align:right; flex-shrink:0; }
+.updated { color:var(--muted); font-size:12px; text-align:right; flex-shrink:0; }
 .updated time { display:block; font-variant-numeric:tabular-nums; }
-.chart-legend { display:flex; flex-wrap:wrap; gap:8px 16px; color:var(--muted); font-size:12px; padding-bottom:12px; }
+.chart-legend { display:flex; flex-wrap:wrap; gap:8px 16px; color:var(--muted); font-size:12px; padding:14px 0 10px; }
 .reference-key { color:var(--reference); }
 .term-key { color:var(--term); }
 .reference-key::before,.term-key::before { content:""; display:inline-block; width:18px; border-top:2px solid currentColor; vertical-align:middle; margin-right:6px; }
@@ -73,9 +69,8 @@ tbody tr:hover { background:#f0f1e9; }
 .trend-group:hover { color:var(--accent); text-decoration:underline; }
 .group-number { flex-shrink:0; color:var(--accent); font:11px/1.65 ui-monospace,monospace; }
 .empty { color:var(--muted); padding:12px 0; font-size:13px; }
-footer { border-top:1px solid var(--ink); margin-top:24px; padding-top:12px; display:flex; justify-content:space-between; gap:16px; color:var(--muted); font-size:11px; }
 [hidden] { display:none!important; }
-@media(max-width:600px) { .shell { padding:14px 12px; } .intro { padding:14px 0 10px; display:block; } h1 { font-size:21px; } .updated { text-align:left; margin-top:8px; } .updated time { display:inline; margin-left:8px; } .tools { gap:10px; } .search { width:100%; } .section-title { display:block; } .note { display:block; margin-top:2px; } footer { display:block; } footer p+p { margin-top:4px; } }
+@media(max-width:600px) { .shell { padding:14px 12px; } .masthead { align-items:flex-start; } .updated time { display:block; } .tools { gap:10px; } .search { width:100%; } .section-title { display:block; } .note { display:block; margin-top:2px; } }
 `;
 
 // 搜索只改变可见性；无脚本时仍可阅读完整日报。
@@ -106,7 +101,7 @@ search.addEventListener('input', () => {
     section.querySelector('.count').textContent = String(visible).padStart(2, '0');
     const empty = section.querySelector('.empty');
     empty.hidden = visible > 0;
-    empty.textContent = query ? '没有匹配的词语，请换个关键词。' : '本期暂无符合条件的词语。';
+    empty.textContent = query ? '没有匹配的词语，请换个关键词。' : '暂无词语。';
   }
 });
 

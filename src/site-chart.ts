@@ -41,8 +41,8 @@ export function renderTrendChart(input: unknown): string {
       })
       .join(" ");
   const date = (at: number) => new Date(at).toISOString().slice(5, 10);
-  return `<svg class="trend-chart" viewBox="0 0 218 72" role="img" aria-label="七天相对搜索热度：蓝线为参考词，红线为当前词，共用零至${upper}纵轴">
-  <title>${date(start)} 至 ${date(end)} UTC：蓝线参考词，红线当前词，共用 0–${upper} 纵轴，原始热度未重新归一化</title>
+  return `<svg class="trend-chart" viewBox="0 0 218 72" role="img" aria-label="七天相对热度，0 至 ${upper}">
+  <title>${date(start)} 至 ${date(end)} · 0–${upper}</title>
   <path class="chart-grid" d="M26,8H208 M26,30H208 M26,52H208"/>
   <text x="20" y="33" text-anchor="end">${middle}</text>
   <text class="axis-max" x="20" y="11" text-anchor="end">${upper}</text><text x="20" y="55" text-anchor="end">0</text>

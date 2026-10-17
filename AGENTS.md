@@ -14,7 +14,7 @@
 
 ## 开发文档索引
 
-- `.devguide/site.md` —— 紧凑表格日报、Tippy 结构化诞生路径时间线与多行理由、手机底部面板、词语/路径复制与多来源追溯、浏览器当地发现时间、趋势分类与 AI 分类列、七天蓝红双线曲线、超限二级候选四词加参考词分组链接、外链匿名来源、白名单与转义、离线和自动发布、nginx/HTTPS、仅本机域名与验证
+- `.devguide/site.md` —— 紧凑表格日报、文案精简与去重复、Tippy 结构化诞生路径时间线与多行理由、手机底部面板、词语/路径复制与多来源追溯、浏览器当地发现时间、趋势分类与 AI 分类列、七天蓝红双线曲线、超限二级候选四词加参考词分组链接、外链匿名来源、白名单与转义、离线和自动发布、nginx/HTTPS、仅本机域名与验证
 
 - `.devguide/structure.md` —— 文件树与逐文件职责，文件增减时更新
 - `.devguide/local-setup.md` —— Node.js / pnpm 环境、config.json 关键项、AIsa / Scrappa / Twitter AIO 凭据、Codex DataForSEO MCP OAuth 与 X 数据源选择、运行与测试命令

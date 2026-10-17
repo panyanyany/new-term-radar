@@ -18,10 +18,9 @@ export const tooltipStyle =
 .birth-card { overflow-wrap:anywhere; font-family:system-ui,sans-serif; }
 .birth-heading { position:sticky; top:0; z-index:1; padding:12px 44px 10px 14px; background:#173e33; color:#f6faf7; }
 .birth-heading strong { font-size:18px; }
-.birth-heading small { font-size:12px; margin-left:8px; font-weight:400; }
 .birth-term { display:block; margin-top:4px; font-size:12px; opacity:.75; }
 .birth-close { position:absolute; right:8px; top:8px; border:0; background:transparent; color:inherit; font-size:26px; cursor:pointer; width:32px; height:32px; line-height:1; }
-.birth-steps { list-style:none; margin:0; padding:12px 12px 2px; }
+.birth-steps { list-style:none; margin:0; padding:12px 12px max(12px,env(safe-area-inset-bottom)); }
 .birth-step { position:relative; padding:0 0 10px 38px; }
 .birth-step::before { content:''; position:absolute; left:13px; top:28px; bottom:0; width:1px; background:#dfe6e1; }
 .birth-step:last-child::before { display:none; }
@@ -34,13 +33,10 @@ export const tooltipStyle =
 .birth-copy { border:0; padding:4px; min-width:28px; min-height:28px; margin:-4px; background:none; color:inherit; cursor:pointer; flex:none; }
 .birth-copy svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.6; }
 .birth-note { font-size:11px; color:#697970; margin:5px 0 0; }
-.birth-badge { display:inline-block; border-radius:12px; background:#deeedb; color:#346f42; padding:1px 9px; margin-left:8px; font-size:11px; }
-.birth-result { margin:0 12px 12px; background:#173e33; color:#f6faf7; padding:9px; border-radius:10px; text-align:center; font-size:14px; font-weight:600; }
 .birth-dialog { position:fixed; inset:auto 0 0; margin:0 auto; padding:0; width:calc(100% - 12px); max-width:600px; max-height:90dvh; border:0; border-radius:18px 18px 0 0; background:#fcfdfc; color:#182a24; overflow:auto; overscroll-behavior:contain; }
 .birth-dialog::backdrop { background:#14251c66; backdrop-filter:blur(3px); }
 .birth-dialog .birth-heading { padding-top:21px; }
 .birth-dialog .birth-heading::before { content:''; position:absolute; width:40px; height:4px; background:#ffffff66; top:9px; left:calc(50% - 20px); border-radius:4px; }
-.birth-dialog .birth-result { margin-bottom:max(12px,env(safe-area-inset-bottom)); }
 html:has(.birth-dialog[open]) { overflow:hidden; }
 .term-trigger { appearance:none; background:none; border:0; padding:0; color:inherit; font:inherit; text-align:left; cursor:help; text-decoration:underline dotted var(--muted); text-underline-offset:4px; }
 .term-trigger:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
@@ -63,8 +59,6 @@ export const tooltipScript = [
     heading.className = 'birth-heading';
     const title = document.createElement('strong');
     title.textContent = '诞生路径';
-    const subtitle = document.createElement('small');
-    subtitle.textContent = '（本项目发现过程）';
     const term = document.createElement('span');
     term.className = 'birth-term';
     term.textContent = element.textContent;
@@ -72,7 +66,7 @@ export const tooltipScript = [
     dismiss.type = 'button'; dismiss.className = 'birth-close';
     dismiss.textContent = '×'; dismiss.setAttribute('aria-label','关闭诞生路径');
     dismiss.addEventListener('click', close);
-    heading.append(title, subtitle, term, dismiss); root.append(heading);
+    heading.append(title, term, dismiss); root.append(heading);
     const list = document.createElement('ol'); list.className = 'birth-steps'; root.append(list);
     // 错误示范：不能按换行或中文标题解析阶段；多行 AI 理由必须完整留在同一步。
     for (const step of JSON.parse(element.getAttribute('data-birth-path') || '[]')) {
@@ -94,12 +88,10 @@ export const tooltipScript = [
           catch { button.textContent='复制失败'; }
         }); block.append(button);
       }
-      if(step.kind==='classification') { const badge=document.createElement('small'); badge.className='birth-badge'; badge.textContent='AI 分类'; block.append(badge); }
       item.append(symbol,h,block);
       if(note) { const p=document.createElement('p'); p.className='birth-note'; p.textContent=note; item.append(p); }
       list.append(item);
     }
-    const result=document.createElement('div'); result.className='birth-result'; result.textContent='→ 进入本轮词表'; root.append(result);
     return root;
   }
   // 手机使用浏览器原生 dialog，负责遮罩、焦点约束、Esc 和关闭后的焦点恢复。
