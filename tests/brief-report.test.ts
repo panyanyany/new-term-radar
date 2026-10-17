@@ -124,12 +124,14 @@ it("本轮候选是唯一报告来源，旧报告回灌和历史词不补入，�
     const brief = await createBrief(
       cfg,
       store,
-      [
-        { term: "fresh", named: 1 },
-        { term: "returning", named: 1 },
-      ],
-      {},
-      {},
+      collectTerms(
+        [
+          { term: "fresh", named: 1 },
+          { term: "returning", named: 1 },
+        ],
+        {},
+        {},
+      ),
       join(state, "previous.md"),
     );
     expect(brief.error).toBeUndefined();
@@ -138,7 +140,9 @@ it("本轮候选是唯一报告来源，旧报告回灌和历史词不补入，�
     expect(md.split("## 2. 旧词")[0]).toContain("fresh:");
     expect(md.split("## 2. 旧词")[1]).toContain("returning:");
     expect(md).not.toContain("openkrill");
-    expect((await createBrief(cfg, store, [], {}, {})).rows).toEqual([]);
+    expect(
+      (await createBrief(cfg, store, collectTerms([], {}, {}))).rows,
+    ).toEqual([]);
     expect(fetch).not.toHaveBeenCalled();
   } finally {
     store.close();
@@ -183,15 +187,17 @@ it("资料不足的历史解释不会阻止使用本轮新证据重新解释", a
     const result = await createBrief(
       cfg,
       store,
-      [],
-      {
-        trends: {
-          candidates: [
-            { term: "new tool", context: "Google 搜索资料：在线图片编辑器" },
-          ],
+      collectTerms(
+        [],
+        {
+          trends: {
+            candidates: [
+              { term: "new tool", context: "Google 搜索资料：在线图片编辑器" },
+            ],
+          },
         },
-      },
-      {},
+        {},
+      ),
     );
     expect(result.rows[0].explanation).toBe("可在线编辑图片的工具。");
     expect(fetch).toHaveBeenCalledTimes(1);

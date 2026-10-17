@@ -1,9 +1,13 @@
+import { withResearchCache } from "../src/research-cache.js";
+import noillirkFixture from "./fixtures/noillirk-hourly.json" with { type: "json" };
+import perceptleReportFixture from "./fixtures/perceptle-report-hourly.json" with { type: "json" };
+import perceptleFixture from "./fixtures/perceptle-hourly.json" with { type: "json" };
 import { SourceTransportError } from "../src/source-errors.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   filterRootTrends,
   hourlySeries,
-  zeroRise,
+  lowBaselineRise,
   type HourPoint,
 } from "../src/trends-filter.js";
 import { callMany } from "../src/scrappa.js";
@@ -25,15 +29,23 @@ const body = (values: HourPoint[], names = ["hex picker", "new game"]) => ({
   })),
 });
 beforeEach(() => vi.clearAllMocks());
-describe("七天从零上涨筛选", () => {
+describe("七天低基线上涨筛选", () => {
   it("保留连续24小时零且最近24小时继续上涨的词", () => {
     expect(
-      zeroRise(series((i) => (i < 120 ? 0 : i < 144 ? 5 : 20))),
+      lowBaselineRise(series((i) => (i < 120 ? 0 : i < 144 ? 5 : 20))),
     ).toMatchObject({ status: "passed", recent_mean: 20, previous_mean: 5 });
   });
   it.each([
-    ["开始已有热度", (i: number) => (i < 144 ? 5 : 20), "no_initial_24h_zero"],
-    ["不足24小时零", (i: number) => (i < 23 ? 0 : 20), "no_initial_24h_zero"],
+    [
+      "开始已有热度",
+      (i: number) => (i < 144 ? 5 : 20),
+      "no_initial_24h_low_baseline",
+    ],
+    [
+      "不足24小时零",
+      (i: number) => (i < 23 ? 0 : 20),
+      "no_initial_24h_low_baseline",
+    ],
     ["全零", () => 0, "all_zero"],
     ["孤立尖峰", (i: number) => (i === 167 ? 20 : 0), "isolated_spike"],
     [
@@ -47,15 +59,15 @@ describe("七天从零上涨筛选", () => {
       "not_rising_recently",
     ],
   ])("排除%s", (_, value, reason) =>
-    expect(zeroRise(series(value))).toMatchObject({
+    expect(lowBaselineRise(series(value))).toMatchObject({
       status: "excluded",
       reason,
     }),
   );
   it("参考词全零、断点和日粒度不能放行", () => {
-    expect(zeroRise(series(() => 20).map(([t, v]) => [t, v, 0]))).toMatchObject(
-      { status: "pending", reason: "invalid_benchmark" },
-    );
+    expect(
+      lowBaselineRise(series(() => 20).map(([t, v]) => [t, v, 0])),
+    ).toMatchObject({ status: "pending", reason: "invalid_benchmark" });
     expect(() =>
       hourlySeries(
         body(series(() => 0).filter((_, i) => i !== 80)),
@@ -252,4 +264,170 @@ it("空曲线点作为上游异常保留待验证，费用不丢失", async () =
   expect(result.candidates).toEqual([]);
   expect(result.filtered[0].trend_filter.status).toBe("pending");
   expect(result.cost_micros).toBe(303);
+});
+
+it("perceptle 实际曲线允许起始一天一个热度 2 的噪声点", () => {
+  const points: HourPoint[] = perceptleFixture.points.map(
+    ([at, value, reference]) => [at, value, reference],
+  );
+  expect(lowBaselineRise(points)).toMatchObject({
+    status: "passed",
+    reason: "low_baseline_then_rising",
+    baseline_nonzero_hours: 1,
+    baseline_max: 2,
+    noise_threshold: 10,
+  });
+});
+it("低基线允许最多三个低值小时，超出数量或幅度均排除", () => {
+  const build = (hours: number[], noise: number) =>
+    series((i) =>
+      hours.includes(i) ? noise : i < 120 ? 0 : i < 144 ? 20 : 100,
+    );
+  expect(lowBaselineRise(build([1, 9, 23], 10)).status).toBe("passed");
+  expect(lowBaselineRise(build([1, 9, 22, 23], 1)).reason).toBe(
+    "no_initial_24h_low_baseline",
+  );
+  expect(lowBaselineRise(build([1], 11)).reason).toBe(
+    "no_initial_24h_low_baseline",
+  );
+});
+it("早期噪声不计入持续上涨点数，防止单个后期尖峰通过", () => {
+  const points = series((i) =>
+    [1, 9, 23].includes(i) ? 1 : i === 167 ? 100 : 0,
+  );
+  expect(lowBaselineRise(points)).toMatchObject({
+    status: "excluded",
+    reason: "isolated_spike",
+    significant_points: 1,
+  });
+});
+
+// 保留实际双线数据，避免只用人工曲线而遗漏真实小时采样的边界。
+it("最近实跑 perceptle 七天双线样本可通过低基线上涨筛选", () => {
+  const points: HourPoint[] = perceptleReportFixture.points.map(
+    ([at, value, reference]) => [at, value, reference],
+  );
+  expect(points).toHaveLength(168);
+  expect(perceptleReportFixture.benchmark).toBe("hex picker");
+  expect(lowBaselineRise(points)).toMatchObject({
+    status: "passed",
+    reason: "low_baseline_then_rising",
+  });
+});
+
+it("noillirk 实测已有日常热度、最近两天爆发也应通过", () => {
+  const points: HourPoint[] = noillirkFixture.points.map(
+    ([at, value, reference]) => [at, value, reference],
+  );
+  expect(points).toHaveLength(168);
+  expect(noillirkFixture.benchmark).toBe("hex picker");
+  expect(lowBaselineRise(points)).toMatchObject({
+    status: "passed",
+    reason: "existing_baseline_then_breakout",
+    trend_type: "existing_baseline_breakout",
+  });
+});
+it("持续爆发允许高位持平，稳定曲线、渐涨、单点尖峰和已经回落仍排除", () => {
+  expect(lowBaselineRise(series((i) => (i < 120 ? 10 : 30)))).toMatchObject({
+    status: "passed",
+    reason: "existing_baseline_then_breakout",
+    trend_type: "existing_baseline_breakout",
+    burst_hours: 24,
+  });
+  for (const points of [
+    series(() => 10),
+    series((i) => 10 + i * 0.3),
+    series((i) => (i === 167 ? 100 : 1)),
+    series((i) => (i < 120 ? 10 : i < 144 ? 100 : 10)),
+    series((i) => (i < 120 ? 10 : 29)),
+  ])
+    expect(lowBaselineRise(points).status).toBe("excluded");
+});
+
+it("三天前爆发并维持高位也通过，基线不包含已起涨时段", () => {
+  expect(lowBaselineRise(series((i) => (i < 96 ? 10 : 30)))).toMatchObject({
+    status: "passed",
+    trend_type: "existing_baseline_breakout",
+    burst_window_hours: 72,
+    historical_mean: 10,
+    pre_burst_mean: 10,
+    burst_threshold: 30,
+  });
+  for (const points of [
+    series((i) => (i < 96 ? 10 : 29)),
+    series((i) => (i < 96 ? 10 : i < 144 ? 30 : 10)),
+    series((i) => (i === 167 ? 100 : 10)),
+    series((i) => 10 + i * 0.3),
+  ])
+    expect(lowBaselineRise(points)).toMatchObject({
+      status: "excluded",
+      breakout_reason: "no_sustained_2d_or_3d_breakout",
+    });
+});
+
+it("同轮跨来源复用曲线且只计一次费用，不覆盖来源证据，参考词与小时变更不复用", async () => {
+  vi.mocked(callMany).mockImplementation(async (calls) => {
+    const names = calls[0][1].q.split(",");
+    return [
+      [
+        body(
+          series((i) => (i < 120 ? 0 : i < 144 ? 5 : 20)),
+          names,
+        ),
+      ],
+      303,
+    ];
+  });
+  await withResearchCache(async () => {
+    const first = await filterRootTrends(
+      [{ term: "new game", origin: "root" }],
+      "hex picker",
+      now,
+    );
+    const next = await filterRootTrends(
+      [
+        {
+          term: "new game",
+          origin: "page",
+          page_evidence: [{ title: "new game" }],
+        },
+      ],
+      "hex picker",
+      now,
+    );
+    expect(first.cost_micros).toBe(303);
+    expect(next.cost_micros).toBe(0);
+    expect(next.candidates[0]).toMatchObject({
+      origin: "page",
+      page_evidence: [{ title: "new game" }],
+      trend_filter: { cache_hit: true },
+    });
+    expect(callMany).toHaveBeenCalledTimes(1);
+    await filterRootTrends([{ term: "new game" }], "other benchmark", now);
+    await filterRootTrends([{ term: "new game" }], "hex picker", now + 3600000);
+    expect(callMany).toHaveBeenCalledTimes(3);
+  });
+  await filterRootTrends([{ term: "new game" }], "hex picker", now);
+  expect(callMany).toHaveBeenCalledTimes(4);
+});
+
+it("曲线请求只比较词语和参考词，不继承 Rising 游戏类目", async () => {
+  vi.mocked(callMany).mockResolvedValueOnce([
+    [body(series((i) => (i < 120 ? 0 : i < 144 ? 5 : 20)))],
+    303,
+  ]);
+  await filterRootTrends(
+    [
+      {
+        term: "new game",
+        appearances: [{ request: { category_code: 8 }, discovery_level: 2 }],
+      },
+    ],
+    "hex picker",
+    now,
+  );
+  expect(vi.mocked(callMany).mock.calls[0][0][0]).toEqual([
+    "google-trends-interest",
+    { q: "hex picker,new game", geo: "Worldwide", time_range: "7d" },
+  ]);
 });

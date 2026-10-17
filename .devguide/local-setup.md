@@ -78,3 +78,5 @@ pnpm check  # 格式、业务与测试类型检查、Vitest、构建
 `trends_roots: { roots: ["game"], windows: [1, 3, 7], category_code: 8 }` 启用根词 Rising 发现；需要现有 AIsa 与 Scrappa 凭据。`--skip trends` 禁用。三天采用 UTC 日期区间，接口日期精度不保证滚动 72 小时。
 
 根词参考词可通过 `trends_roots.benchmark` 独立设置，未设置时兼容 `usecases.benchmark`。根词、窗口、类目与批量数量在配置加载阶段校验。七天筛选与超大曲线有限重查详见 [trends.md](trends.md)。
+
+网页研究失败后的显式补查：`pnpm radar replay-pages --batch <UUID> --config config.json --state state --out state/page-replay.json`。批次位于本地 `state/page-batches`；补查独立输出，不发送通知或回灌日报，详见 `.devguide/pages.md`。

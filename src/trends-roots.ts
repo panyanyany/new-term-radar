@@ -1,9 +1,9 @@
+import { termKey } from "./term-observations.js";
 import { DEFAULT_TRENDS_CATEGORY } from "./trends-config.js";
 import { sourceFailure, SourceDataError } from "./source-errors.js";
-import { classifyCandidates } from "./candidate-kind.js";
+import { researchCandidates } from "./candidate-research.js";
 import { filterRootTrends } from "./trends-filter.js";
 import { call, key } from "./aisa.js";
-import { googleSearchResult } from "./scrappa.js";
 import {
   errorText,
   jsonFetch,
@@ -13,6 +13,8 @@ import {
   type Data,
 } from "./core.js";
 
+import { expandSecondLevel, type SaveSecondLevel } from "./trends-expansion.js";
+export { exceedsReference, rankSecondLevel } from "./trends-expansion.js";
 const TOOL = "any_dataforseo_apis_v1_dataforseo_keywords_data_g_f56cfb";
 // 三天使用 UTC 日期区间，接口只支持日期精度，不宣称精确滚动 72 小时。
 export function requestFor(
@@ -54,13 +56,31 @@ export function risingRows(data: Data): { rows: Data[]; check_url: string } {
     throw new SourceDataError("invalid rising query");
   return { rows: item.data.rising, check_url: result.check_url };
 }
-// 根词发现先过七天曲线筛选，再逐词 Google 搜索取证；搜索失败仍保留通过的词。
-export async function discoverRoots(
+// 相关查询只负责 Rising 获取与归并，配置根词和曲线触发扩展共用接口契约。
+export async function discoverRelated(
   cfg: Config,
-  onDiscovered?: (rows: { term: string }[]) => void,
+  roots: string[],
 ): Promise<Data> {
-  const roots = cfg.trends_roots.roots;
-  if (!roots.length) return { candidates: [], windows: [] };
+  if (!roots.length) return { candidates: [], windows: [], cost_micros: 0 };
+  // 一级扩展数量不固定，按现有路由单批 20 个请求的限制拆批。
+  const batchSize = Math.floor(20 / cfg.trends_roots.windows.length);
+  if (roots.length > batchSize) {
+    const merged = new Map<string, Data>();
+    const windows: Data[] = [];
+    let cost_micros = 0;
+    for (let i = 0; i < roots.length; i += batchSize) {
+      const batch = await discoverRelated(cfg, roots.slice(i, i + batchSize));
+      windows.push(...batch.windows);
+      cost_micros += batch.cost_micros;
+      for (const row of batch.candidates) {
+        const k = termKey(row.term);
+        const previous = merged.get(k);
+        if (previous) previous.appearances.push(...row.appearances);
+        else merged.set(k, row);
+      }
+    }
+    return { candidates: [...merged.values()], windows, cost_micros };
+  }
   const calls = roots.flatMap((root, i) =>
     cfg.trends_roots.windows.map((window) => ({
       call_id: `root_${i}_${window}`,
@@ -124,7 +144,7 @@ export async function discoverRoots(
         count: parsed.rows.length,
       });
       for (const r of parsed.rows) {
-        const k = r.query.trim().normalize("NFKC").toLowerCase();
+        const k = termKey(r.query);
         const row = candidates.get(k) ?? {
           term: r.query.trim(),
           appearances: [],
@@ -133,6 +153,8 @@ export async function discoverRoots(
           root: request.keywords[0],
           request,
           growth: r.value,
+          discovery_level: 1,
+          root_path: [request.keywords[0], r.query.trim()],
         });
         candidates.set(k, row);
       }
@@ -141,50 +163,57 @@ export async function discoverRoots(
       windows.push({ call_id: c.call_id, request, error: errorText(e) });
     }
   }
+  return { candidates: [...candidates.values()], windows, cost_micros };
+}
+
+// 根词发现先过七天曲线筛选，再逐词 Google 搜索取证；搜索失败仍保留通过的词。
+export async function discoverRoots(
+  cfg: Config,
+  onDiscovered?: (rows: { term: string }[]) => void,
+  saveSecondLevel?: SaveSecondLevel,
+): Promise<Data> {
+  const related = await discoverRelated(cfg, cfg.trends_roots.roots);
   // 错误示范：等到分类通过才写首次发现，会把旧词误标成新词。
-  onDiscovered?.([...candidates.values()] as { term: string }[]);
+  onDiscovered?.(related.candidates);
   const screening = await filterRootTrends(
-    [...candidates.values()],
+    related.candidates,
     cfg.trends_roots.benchmark ?? cfg.usecases.benchmark,
   );
-  const rows: Data[] = screening.candidates;
-  // 搜索资料完整保留；失败交给分类阶段标记待确认，不自动付费重试。
-  let next = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(3, rows.length) }, async () => {
-      while (next < rows.length) {
-        const row = rows[next++];
-        try {
-          const result = await googleSearchResult(row.term, "broad");
-          row.evidence = result.evidence;
-          row.search_response = {
-            query: result.query,
-            organic_results: result.rawResults,
-          };
-        } catch (e) {
-          sourceFailure("google_search", { term: row.term }, e);
-          row.search_error = errorText(e);
-          row.evidence = [];
-        }
-        row.context = row.evidence.length
-          ? `Google 搜索资料：${JSON.stringify(row.evidence)}`
-          : "Google 搜索未找到可核实资料，必须标注含义待确认，不可推测。";
-      }
-    }),
+  const firstClassified = await researchCandidates(
+    screening.candidates,
+    cfg.usecases.model,
   );
-  const classified = await classifyCandidates(rows, cfg.usecases.model);
-  // 后续解释优先使用分类所引用的相关证据，完整搜索结果仍保留在原字段中。
-  for (const row of classified.candidates) {
-    const indices: number[] = row.classification?.evidence_indices ?? [];
-    if (indices.length)
-      row.context = `Google 搜索资料：${JSON.stringify(indices.map((i) => row.evidence[i]))}`;
-  }
+  // 必须完成一级曲线、取证、分类和赛事门禁后，才允许产生二级词。
+  const expansion = await expandSecondLevel(
+    cfg,
+    related.candidates,
+    { candidates: firstClassified.candidates },
+    onDiscovered,
+    discoverRelated,
+    saveSecondLevel,
+  );
+  const classified = await researchCandidates(
+    expansion.candidates,
+    cfg.usecases.model,
+  );
   return {
-    candidates: classified.candidates,
-    classification_filtered: classified.filtered,
-    filtered: screening.filtered,
-    windows,
-    cost_micros: cost_micros + screening.cost_micros,
+    candidates: [
+      ...firstClassified.candidates.map((row: Data) => ({
+        ...row,
+        appearances: expansion.first_appearances[termKey(row.term)],
+      })),
+      ...classified.candidates,
+    ],
+    classification_filtered: [
+      ...firstClassified.filtered,
+      ...classified.filtered,
+    ],
+    filtered: [...screening.filtered, ...expansion.filtered],
+    windows: [...related.windows, ...expansion.windows],
+    expansion: expansion.triggers,
+    second_level: expansion.snapshot,
+    cost_micros:
+      related.cost_micros + screening.cost_micros + expansion.cost_micros,
     cost_complete: false, // 此处仅含 Rising 和曲线；完整费用从请求账本读取。
   };
 }

@@ -10,50 +10,11 @@ import { join } from "node:path";
 import { chat } from "./aisa.js";
 import { compact, errorText, type Config, type Data } from "./core.js";
 import { Store } from "./store.js";
-import { costLines, named } from "./report.js";
+import { costLines } from "./report.js";
 
-export interface BriefTerm {
-  term: string;
-  context: string;
-  explanation?: string;
-  first_seen_at?: string;
-  source?: "trends";
-}
-export function collectTerms(
-  lead: Data[],
-  blocks: Data,
-  keywords: Data,
-): BriefTerm[] {
-  const rows: BriefTerm[] = [
-    ...(blocks.trends?.candidates ?? []).map((r: Data) => ({
-      term: r.term,
-      context: r.context,
-      source: "trends" as const,
-    })),
-    ...lead.map((r) => ({
-      term: r.term,
-      context: r.examples?.join("; ") || r.signals?.join("; ") || "",
-    })),
-    ...(keywords.rows ?? []).map((r: Data) => ({
-      term: r.phrase ?? r.term,
-      context: compact(
-        [r.evidence, r.quote, r.names?.join(", ")].filter(Boolean).join("; "),
-      ),
-    })),
-    ...(blocks.sitemap?.pages?.candidates ?? [])
-      .filter((r: Data) => r.keyword)
-      .map((r: Data) => ({
-        term: r.keyword,
-        context: `网页标题：${r.anchors?.find((a: string) => a.toLowerCase().includes(r.keyword.toLowerCase())) ?? r.keyword}；来源 ${r.url}`,
-        explanation: r.explanation,
-      })),
-  ];
-  const unique = new Map<string, BriefTerm>();
-  for (const row of rows)
-    if (row.term && !unique.has(identity(row.term)))
-      unique.set(identity(row.term), row);
-  return [...unique.values()];
-}
+import { collectTerms, type BriefTerm } from "./report-terms.js";
+export { collectTerms, type BriefTerm } from "./report-terms.js";
+
 // 同库独立小表保存精确 UTC 时间；旧 leads 仅有日期，按该日期起点兼容。
 export function rememberTerms(
   store: Store,
@@ -242,9 +203,7 @@ export function briefReport(
 export async function createBrief(
   cfg: Config,
   store: Store,
-  lead: Data[],
-  blocks: Data,
-  keywords: Data,
+  current: BriefTerm[],
   out?: string,
 ): Promise<Data> {
   if (out)
@@ -258,7 +217,6 @@ export async function createBrief(
           .replace(/\.[^.]+$/, "") + ".json",
       ),
     );
-  const current = collectTerms(named(cfg, lead).slice(0, 20), blocks, keywords);
   rememberTerms(store, current);
   const currentKeys = new Set(current.map((row) => identity(row.term)));
   // 按本轮词键直接查询，避免历史数量或排序影响本轮候选是否展示。

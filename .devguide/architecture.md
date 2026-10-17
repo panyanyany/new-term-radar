@@ -27,9 +27,9 @@
 
 ## 接受的限制
 
-采集快照和后续线索入库不是共同事务，中间退出后重跑可能不再报告部分新候选。没有持久化步骤恢复或跨入口互斥；应避免手动任务与定时任务同时使用同一 state。用 `--state` 指向临时目录可以隔离实验，但首次运行会建立新基线。
+采集快照和后续线索入库不是共同事务，中间退出后重跑可能不再报告部分新候选；网页新增候选在推进去重快照前独立归档，可显式 replay-pages 补查，不自动回灌。没有持久化步骤恢复或跨入口互斥；应避免手动任务与定时任务同时使用同一 state。用 `--state` 指向临时目录可以隔离实验，但首次运行会建立新基线。
 
-单个信号失败会降级报告，其他信号继续；CLI 返回 0 表示报告流程完成，不代表所有接口成功。通知各渠道分别发送，重复执行可能重复投递。费用包含 AIO 每请求 $0.0004 和按 OpenRouter 单价计算的模型 token 估算；缺失用量或模型价格会显式提示，已完成请求明细独立落盘，未知费用与中断请求保留不完整标记。
+预期上游信号失败会降级报告，其他信号继续；Trends/网页研究的配置与程序错误保留堆栈并终止；CLI 返回 0 表示报告流程完成，不代表所有接口成功。通知各渠道分别发送，重复执行可能重复投递。费用包含 AIO 每请求 $0.0004 和按 OpenRouter 单价计算的模型 token 估算；缺失用量或模型价格会显式提示，已完成请求明细独立落盘，未知费用与中断请求保留不完整标记。
 
 这些是当前个人实验工具的运行边界，不作为建立企业级基础设施的要求。实验时查看报告中的错误与数据来源，比无条件重跑所有收费请求更有用。
 
@@ -39,4 +39,8 @@
 
 费用明细由 `usage.ts` 在 CLI/MCP 运行范围内写入现有 SQLite 的 `api_usage` 表，供应商入口逐请求记账；报告与本地统计命令读取这些明细，避免模块合计重复计费。请求中断保留 pending，未知费用保留 NULL，不引入外部计费服务。
 
-根词流程由 trends-roots 直接串联 curves/search/classification；term-observations 只负责原始发现时间，trends-explanations 只负责此来源的解释状态与证据版本。原有 usecases 导出保持兼容，日曲线纯计算在 trend-measure，批量查询在 trends-series；report 的费用和关键词展示分别在 cost-report、keyword-report，未引入通用工作流。
+根词流程由 trends-roots 编排，网页词由 page-research 编排；两者复用 candidate-research 的取证/分类及 trends-filter 曲线判断，所有来源均以曲线通过为门槛，再拦截明确体育赛事；term-observations 只负责原始发现时间，trends-explanations 只负责此来源的解释状态与证据版本。原有 usecases 导出保持兼容，日曲线纯计算在 trend-measure，批量查询在 trends-series；report 的费用和关键词展示分别在 cost-report、keyword-report，未引入通用工作流。
+
+日报在 CLI 调用 createBrief 前经 report-screening 统一关口：复用本轮根词/网页的通过结果，为剩余线索和关键词研究词补查曲线及取证分类。report-terms 仅收集原始候选，report-screening 返回明确类型，CLI 显式将 candidate_screening.rows 作为 createBrief 的唯一候选输入；同词已被曲线或体育赛事拦截时不能从其他来源重新放行。没有曲线或待验证同样不进入日报。
+
+同轮曲线和相同搜索请求使用 research-cache 的内存 Map，范围由 withUsageRun 管理；分类仍使用各来源证据，缓存命中不重复计费，不跨运行缓存，不增加基础设施。

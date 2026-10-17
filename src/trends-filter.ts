@@ -1,3 +1,5 @@
+import { cachedCurve, rememberCurve } from "./research-cache.js";
+import { termKey } from "./term-observations.js";
 import { sourceFailure, SourceDataError } from "./source-errors.js";
 import { callMany } from "./scrappa.js";
 import { errorText, mean, type Data } from "./core.js";
@@ -10,10 +12,23 @@ export type HourPoint = [
 export interface TrendDecision {
   status: "passed" | "pending" | "excluded";
   reason: string;
+  breakout_reason?: string;
+  trend_type?: "low_baseline_rise" | "existing_baseline_breakout";
   first_nonzero_at?: string | null;
   recent_mean?: number;
   previous_mean?: number;
   nonzero_points?: number;
+  baseline_mean?: number;
+  baseline_max?: number;
+  baseline_nonzero_hours?: number;
+  noise_threshold?: number;
+  significant_points?: number;
+  historical_mean?: number;
+  pre_burst_mean?: number;
+  recent_48h_mean?: number;
+  burst_threshold?: number;
+  burst_hours?: number;
+  burst_window_hours?: number;
 }
 // 保留小时与参考词共同尺度，缺点、重复点和未覆盖七天的数据不能当作零。
 export function hourlySeries(
@@ -75,8 +90,40 @@ export function hourlySeries(
   }
   return result;
 }
-// 以最新完整小时结束的两个 24 小时段比较，避开未结算点与单次尖峰。
-export function zeroRise(series: HourPoint[]): TrendDecision {
+// 已有热度分别检查最近两天/三天；基线和临近对照始终取起涨窗口之前的数据。
+function sustainedBreakout(series: HourPoint[]) {
+  const recent = series.slice(-24).map((p) => p[1]);
+  const windows = [48, 72].map((hours) => {
+    const history = series.slice(0, -(hours + 24)).map((p) => p[1]);
+    const historical_mean = mean(history);
+    const pre_burst_mean = mean(
+      series.slice(-(hours + 24), -hours).map((p) => p[1]),
+    );
+    const recent_48h_mean = mean(series.slice(-48).map((p) => p[1]));
+    const burst_threshold = Math.max(historical_mean * 3, pre_burst_mean * 2);
+    const burst_hours = recent.filter((v) => v >= burst_threshold).length;
+    // 错误示范：把已上涨的第三天当成基线会漏词；只看峰值或窗口均值又会放行尖峰及回落。
+    const passed =
+      historical_mean > 0 &&
+      history.filter((v) => v > 0).length >= 24 &&
+      mean(series.slice(-hours).map((p) => p[1])) >= burst_threshold &&
+      recent_48h_mean >= burst_threshold &&
+      mean(recent) >= burst_threshold &&
+      burst_hours >= 12;
+    return {
+      passed,
+      historical_mean,
+      pre_burst_mean,
+      recent_48h_mean,
+      burst_threshold,
+      burst_hours,
+      burst_window_hours: hours,
+    };
+  });
+  return windows.find((window) => window.passed) ?? windows[0];
+}
+// 统一判定低基线起量或已有热度后的持续爆发，不改变数据完整性与参考词校验。
+export function lowBaselineRise(series: HourPoint[]): TrendDecision {
   const pending = (reason: string): TrendDecision => ({
     status: "pending",
     reason,
@@ -96,23 +143,56 @@ export function zeroRise(series: HourPoint[]): TrendDecision {
   const first = series.findIndex((p) => p[1] > 0);
   const recent_mean = mean(series.slice(-24).map((p) => p[1]));
   const previous_mean = mean(series.slice(-48, -24).map((p) => p[1]));
+  const baseline = series.slice(0, 24).map((p) => p[1]);
+  const noise_threshold = Math.max(...series.map((p) => p[1])) * 0.1;
+  // 错误示范：一个早期低值就淘汰会漏掉新起量词；用噪声凑满三个点又会放行孤立尖峰。
   const details = {
+    baseline_mean: mean(baseline),
+    baseline_max: Math.max(...baseline),
+    baseline_nonzero_hours: baseline.filter((value) => value > 0).length,
+    noise_threshold,
+    significant_points: series.filter((p) => p[1] > noise_threshold).length,
     first_nonzero_at:
       first < 0 ? null : new Date(series[first][0]).toISOString(),
     recent_mean,
     previous_mean,
     nonzero_points: series.filter((p) => p[1] > 0).length,
   };
-  let reason = "zero_then_rising";
+  let reason = "low_baseline_then_rising";
   if (first < 0) reason = "all_zero";
-  else if (first < 24) reason = "no_initial_24h_zero";
-  else if (details.nonzero_points < 3) reason = "isolated_spike";
+  else if (
+    details.baseline_nonzero_hours > 3 ||
+    details.baseline_max > noise_threshold
+  )
+    reason = "no_initial_24h_low_baseline";
+  else if (details.significant_points < 3) reason = "isolated_spike";
   else if (recent_mean <= previous_mean || recent_mean === 0)
     reason = "not_rising_recently";
+  const { passed: breakout, ...burstDetails } = sustainedBreakout(series);
+  if (reason !== "low_baseline_then_rising" && breakout)
+    reason = "existing_baseline_then_breakout";
   return {
-    status: reason === "zero_then_rising" ? "passed" : "excluded",
+    status: [
+      "low_baseline_then_rising",
+      "existing_baseline_then_breakout",
+    ].includes(reason)
+      ? "passed"
+      : "excluded",
     reason,
+    ...(![
+      "all_zero",
+      "low_baseline_then_rising",
+      "existing_baseline_then_breakout",
+    ].includes(reason)
+      ? { breakout_reason: "no_sustained_2d_or_3d_breakout" }
+      : {}),
     ...details,
+    ...burstDetails,
+    ...(reason === "low_baseline_then_rising"
+      ? { trend_type: "low_baseline_rise" as const }
+      : reason === "existing_baseline_then_breakout"
+        ? { trend_type: "existing_baseline_breakout" as const }
+        : {}),
   };
 }
 // 仅唯一非零候选、参考词及其余候选全零时，认定该候选独占本批刻度。
@@ -134,8 +214,23 @@ export async function filterRootTrends(
   if (benchmark.includes(","))
     throw new Error("comparison benchmark contains comma");
   const checks: Data[] = [];
+  const curveKey = (term: string) =>
+    JSON.stringify([
+      termKey(term),
+      benchmark,
+      "Worldwide",
+      "7d",
+      Math.floor(now / 3600000),
+      process.env.SCRAPPA_MCP_URL ?? "https://scrappa.co/mcp",
+    ]);
+
   // 错误示范：上游候选不是配置，不能让一个不可表达的词中断整批。
   const supported = rows.filter((row) => {
+    const previous = cachedCurve(curveKey(row.term));
+    if (previous) {
+      checks.push({ ...row, trend_filter: { ...previous, cache_hit: true } });
+      return false;
+    }
     if (!row.term.includes(",")) return true;
     checks.push({
       ...row,
@@ -154,6 +249,7 @@ export async function filterRootTrends(
     const attempts: Data[] = [];
     for (let attempt = 0; attempt < 2; attempt++) {
       const keywords = [benchmark, ...batch.map((r) => r.term)];
+      // 类目仅属于 Rising 发现接口；曲线不可传类目，否则 hex picker 可能被过滤为零。
       const request = {
         q: keywords.join(","),
         geo: "Worldwide",
@@ -172,7 +268,7 @@ export async function filterRootTrends(
         currentAttempt.cost_micros = cost;
         const series = hourlySeries(bodies[0], keywords, now);
         currentAttempt.curves = series;
-        currentAttempt.decisions = series.map(zeroRise);
+        currentAttempt.decisions = series.map(lowBaselineRise);
         const dominant = attempt === 0 ? dominantCurve(series) : undefined;
         if (dominant !== undefined) {
           const row = batch[dominant];
@@ -197,7 +293,7 @@ export async function filterRootTrends(
           checks.push({
             ...row,
             trend_filter: {
-              ...zeroRise(series[j]),
+              ...lowBaselineRise(series[j]),
               benchmark,
               request,
               curve: series[j],
@@ -232,6 +328,7 @@ export async function filterRootTrends(
       break;
     }
   }
+  for (const row of checks) rememberCurve(curveKey(row.term), row.trend_filter);
   return {
     candidates: checks.filter((r) => r.trend_filter.status === "passed"),
     filtered: checks.filter((r) => r.trend_filter.status !== "passed"),

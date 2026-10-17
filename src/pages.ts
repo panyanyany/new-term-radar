@@ -1,3 +1,4 @@
+import { savePageBatch } from "./page-batches.js";
 import { Store } from "./store.js";
 import { extractPageKeywords } from "./page-keywords.js";
 import { load } from "cheerio";
@@ -115,6 +116,8 @@ export function pageLinks(html: string, source: PageSource): PageCandidate[] {
 
 // 快照保留所有曾出现的 URL；抓取失败或空页面时不覆盖，重新出现不会重复报新。
 export async function pageDiff(cfg: Config, state: string): Promise<Data> {
+  let research_batch: string | undefined;
+  const createdAt = new Date().toISOString();
   const sites: Data = {},
     candidates: Data[] = [];
   for (const [site, source] of Object.entries(cfg.pages ?? {})) {
@@ -148,6 +151,21 @@ export async function pageDiff(cfg: Config, state: string): Promise<Data> {
         }
       }
       for (const row of current) seen[row.url] = row;
+      if (added.length) {
+        // 错误示范：只推进 seen 再付费研究，失败后新增链接就无法从下一轮抓取恢复。
+        research_batch = savePageBatch(
+          state,
+          {
+            sites,
+            candidates: [
+              ...candidates,
+              ...added.map((row) => ({ site, ...row })),
+            ],
+          },
+          research_batch,
+          createdAt,
+        );
+      }
       saveSnap(state, name, seen);
       sites[site] = {
         urls: current.length,
@@ -160,5 +178,5 @@ export async function pageDiff(cfg: Config, state: string): Promise<Data> {
       sites[site] = { error: errorText(e) };
     }
   }
-  return { sites, candidates };
+  return { sites, candidates, research_batch, created_at: createdAt };
 }

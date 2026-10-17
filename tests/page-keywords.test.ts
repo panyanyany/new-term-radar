@@ -1,3 +1,4 @@
+import { collectTerms } from "../src/report-terms.js";
 import { afterEach, expect, it, vi } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
@@ -81,7 +82,7 @@ it("旧标题修正保留首次发现，重跑不恢复标题或重复调用", a
         },
       },
     };
-    const brief = await createBrief(cfg, store, [], blocks, {});
+    const brief = await createBrief(cfg, store, collectTerms([], blocks, {}));
     expect(brief.error).toBeUndefined();
     expect(brief.rows).toHaveLength(1);
     expect(brief.rows[0]).toMatchObject({
@@ -95,7 +96,7 @@ it("旧标题修正保留首次发现，重跑不恢复标题或重复调用", a
         context: `网页标题：${title}；来源 https://example.com/tutorial`,
       },
     ]);
-    const again = await createBrief(cfg, store, [], blocks, {});
+    const again = await createBrief(cfg, store, collectTerms([], blocks, {}));
     expect(again.rows).toHaveLength(1);
     expect(again.rows[0].first_seen_at).toBe(seen.toISOString());
     expect(chat).toHaveBeenCalledTimes(1);

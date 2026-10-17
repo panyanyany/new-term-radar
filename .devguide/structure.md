@@ -2,6 +2,9 @@
 
 ```text
 new-term-radar/
+├── .impeccable.md               单页阅读界面的设计上下文
+├── .playwright-mcp/             本机浏览器验证日志与截图，未跟踪
+├── site/                        本机生成的静态页面，未跟踪
 ├── AGENTS.md                    开发规范与开发文档索引
 ├── package.json                 pnpm 版本、依赖、开发/验证/构建入口
 ├── pnpm-lock.yaml               pnpm 依赖锁定
@@ -15,6 +18,7 @@ new-term-radar/
 ├── LICENSE                      MIT 许可
 ├── .env                         本机通知凭据，未跟踪
 ├── .devguide/
+│   ├── site.md                  公开单页、发布脚本、nginx 与仅本机域名
 │   ├── structure.md             文件树与职责
 │   ├── pages.md                 网页监控、锚文本选择、候选词与基线
 │   ├── local-setup.md           Node/pnpm 环境、配置、凭据、命令
@@ -41,11 +45,15 @@ new-term-radar/
 │   ├── radar.en.gif             英文流程动画
 │   └── radar.zh.gif             中文流程动画
 ├── src/
+│   ├── site.ts                  公开字段校验、HTML 转义与原子发布
+│   ├── site-tooltip.ts          Tippy/Popper 本地发行文件内联、诞生路径浮窗与键盘交互
+│   ├── site-template.ts         紧凑表格样式及浏览器搜索
+│   ├── site-chart.ts            七天趋势双线 SVG，蓝参考词、红当前词
 │   ├── core.ts                  配置/文案、日期、舍入、HTTP、gzip JSON 快照
 │   ├── defaults.json            各模块默认配置
 │   ├── messages.json            中英文报告文案
 │   ├── prompts.json             模型提示词、停用词和邮件内联样式
-│   ├── cli.ts                   daily/sources/keywords/leads/costs/mcp 编排
+│   ├── cli.ts                   daily/sources/keywords/leads/costs/replay-pages/mcp 编排
 │   ├── mcp-server.ts            recent_leads/keyword_table/run_radar 工具
 │   ├── usage.ts                 SQLite 请求明细、运行/模块范围、统计及费用分布表
 │   ├── model-costs.ts           DeepSeek 用户单价/OpenRouter 快照、token 计价及独立调用范围
@@ -57,16 +65,24 @@ new-term-radar/
 │   ├── sources.ts               X 新名称、HF trending 新模型及名称清洗
 │   ├── breakout.ts              GitHub 星数增长、爆发与搜索变体
 │   ├── page-keywords.ts         大模型标题核心词组与解释、输出校验和 SQLite 缓存
+│   ├── page-batches.ts          URL 快照推进前归档原始候选、批次 ID 校验与显式读取
+│   ├── research-cache.ts        单轮曲线与搜索请求复用、并行隔离与失败不缓存
+│   ├── report-terms.ts          原始候选收集与去重、报告输入类型
 │   ├── pages.ts                 Cheerio 页面链接汇总、候选词、曾见 URL 快照
 │   ├── sitemaps.ts              XML/gzip sitemap 抓取、新页面激增词
 │   ├── new-sites.ts             周频 WHOIS、ETV/排名词新域名信号
 │   ├── gsc.ts                   Search Console 授权刷新与新展现查询
 │   ├── judge.ts                 模型名称评分及输出校验
 │   ├── terms.ts                 名称提取、词项、按独立来源统计激增
-│   ├── trends-roots.ts          根词 Rising、首次发现回调与筛选/搜索/分类编排
+│   ├── trends-roots.ts          Rising 接口、一级门禁及二级扩展直接编排
+│   ├── trends-expansion.ts      二级触发、类目继承、来源克隆归并、全局排序前十及快照契约
+│   ├── trends-batches.ts        二级研究前 gzip 原子归档，保留排名及来源，不自动恢复
 │   ├── trends-config.ts         根词配置默认值、Zod 校验与请求数量限制
-│   ├── trends-filter.ts         七天小时曲线、从零上涨与超大曲线有限重查
-│   ├── candidate-kind.ts        线上游戏/在线工具分类、证据引用及放行校验
+│   ├── trends-filter.ts         七天小时曲线、低基线上涨与超大曲线有限重查
+│   ├── candidate-research.ts    所有来源共用普通/精确搜索、证据上下文与分类
+│   ├── page-research.ts         网页词去重、曲线硬门槛、来源页证据与体育赛事拦截
+│   ├── report-screening.ts      日报前任意来源统一曲线门槛、复用已研究结果及跨来源防绕过
+│   ├── candidate-kind.ts        按 term 关联分类、缺项隔离、线下体育赛事拦截与证据校验
 │   ├── term-observations.ts     原始发现时间、本地词键和只追加发现记录
 │   ├── trends-explanations.ts   Trends 解释的证据/模型/版本状态缓存
 │   ├── source-errors.ts         上游预期错误、程序错误及 stderr 堆栈诊断
@@ -81,6 +97,7 @@ new-term-radar/
 │   ├── store.ts                 SQLite 线索、命中率与复盘状态
 │   └── notify.ts                Resend 邮件与 Markdown HTML
 ├── scripts/
+│   ├── publish-site.ts          离线生成最新日报页面
 │   ├── notify-report.ts         Telegram 摘要/附件、飞书摘要
 │   ├── gsc-auth.ts              桌面 OAuth、PKCE、gsc_token.json
 │   └── make-diagram.ts          SVG 动画及 rsvg/ffmpeg 媒体导出
@@ -89,11 +106,21 @@ new-term-radar/
 │   ├── ai-listening/SKILL.md     新名称线索收集
 │   └── seo-new-keywords-research/SKILL.md  指定名称关键词研究
 ├── tests/
+│   ├── fixtures/perceptle-hourly.json 实测七天小时点，低基线噪声回归样本
+│   ├── fixtures/noillirk-hourly.json 已有热度后持续爆发的 noillirk / hex picker 实测双线
+│   ├── fixtures/perceptle-report-hourly.json 最近实跑 perceptle 与 hex picker 七天双线样本及采样元数据
+│   ├── site.test.ts             公开白名单、转义、分类与失败保留页面
 │   ├── source-errors.test.ts      上游错误分类、程序异常传播、历史导入和部分费用展示
 │   ├── parity.test.ts           固定旧实现基准：曲线、名称、双语报告
-│   ├── trends-roots.test.ts       Rising 契约、类目与筛选阶段边界
-│   ├── trends-filter.test.ts      零基线、超大曲线有限重查、失败和费用
-│   ├── candidate-kind.test.ts     类别放行、证据引用及非法输出拒绝
+│   ├── trends-expansion.test.ts 跨父词前十稳定性、输入不变、缺失增长及中止快照
+│   ├── site-path.test.ts        结构化多行路径、排序策略兼容及零/缺失增长展示
+│   ├── trends-roots.test.ts       Rising 契约、类目继承、三倍边界、全局排序前十与二级不递归
+│   ├── trends-filter.test.ts      低基线噪声边界、超大曲线有限重查、失败和费用
+│   ├── report-screening.test.ts 其他来源补查、已有结果复用、跨来源防绕过
+│   ├── page-recovery.test.ts    研究失败留档、显式补查、快照去重及错误传播
+│   ├── research-cache.test.ts   搜索跨模块复用、费用去重、失败再查和运行隔离
+│   ├── page-research.test.ts    网页曲线不达标/待验证拦截、同词去重、来源证据、赛事拦截与无新增零请求
+│   ├── candidate-kind.test.ts     分类 term 匹配、八词七答、缺项/重复隔离与证据引用
 │   ├── trends-config.test.ts      配置默认值、重复项与请求上限
 │   ├── trends-cache.test.ts       解释状态、证据/模型/版本失效与旧来源隔离
 │   ├── trends-maintenance.test.ts 外部接口模拟下的完整内部流程及首次发现

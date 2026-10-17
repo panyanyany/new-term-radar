@@ -18,3 +18,9 @@ node_modules/
 .pnpm-store/
 coverage/
 *.tsbuildinfo
+
+# 本机静态发布产物，不包含在仓库中
+site/
+
+# 浏览器验证日志和截图可能包含本机域名
+.playwright-mcp/

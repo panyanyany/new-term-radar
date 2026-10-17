@@ -1,3 +1,6 @@
+import { screenReportTerms } from "../src/report-screening.js";
+import { researchPages } from "../src/page-research.js";
+import { renderSite } from "../src/site.js";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -44,24 +47,36 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
-it("真实模块串联：记录原始发现，只有曲线和类型均通过的词进入日报", async () => {
-  const names = ["fresh tool", "board game", "uncertain game", "established"];
+it("真实模块串联：记录原始发现，仅明确线下体育赛事不进入解释与日报", async () => {
+  const names = ["fresh tool", "sports match", "uncertain game", "established"];
   const now = Date.now(),
     hour = Math.floor(now / 3600000) * 3600000;
-  m.callTool.mockResolvedValue({
-    structuredContent: {
-      timeline_data: Array.from({ length: 168 }, (_, i) => ({
-        timestamp: (hour - (168 - i) * 3600000) / 1000,
-        values: [
-          { query: "hex picker", value: 10 },
-          ...names.map((term) => ({
-            query: term,
-            value: term === "established" ? 20 : i < 120 ? 0 : i < 144 ? 5 : 20,
-          })),
-        ],
-      })),
-    },
-  });
+  m.callTool.mockImplementation(
+    async (input: { arguments: { params: string } }) => ({
+      structuredContent: {
+        timeline_data: Array.from({ length: 168 }, (_, i) => ({
+          timestamp: (hour - (168 - i) * 3600000) / 1000,
+          values: [
+            { query: "hex picker", value: 10 },
+            ...JSON.parse(input.arguments.params)
+              .q.split(",")
+              .slice(1)
+              .map((term: string) => ({
+                query: term,
+                value:
+                  term === "established" || term.startsWith("steady")
+                    ? 20
+                    : i < 120
+                      ? 0
+                      : i < 144
+                        ? 5
+                        : 20,
+              })),
+          ],
+        })),
+      },
+    }),
+  );
   const searched: string[] = [],
     explained: string[] = [];
   vi.stubGlobal(
@@ -128,15 +143,16 @@ it("真实模块串联：记录原始发现，只有曲线和类型均通过的�
         const answer = rows.map((r: { i: number; term: string }) =>
           classification
             ? {
-                i: r.i,
+                term: r.term,
                 decision:
                   r.term === "fresh tool"
                     ? "confirmed"
-                    : r.term === "board game"
+                    : r.term === "sports match"
                       ? "rejected"
                       : "uncertain",
                 is_online_tool: r.term === "fresh tool",
                 is_online_game: false,
+                is_offline_sports_event: r.term === "sports match",
                 reason: "按搜索证据判断",
                 evidence_indices: [0],
               }
@@ -167,11 +183,79 @@ it("真实模块串联：记录原始发现，只有曲线和类型均通过的�
     expect(trends.filtered.map((r: { term: string }) => r.term)).toEqual([
       "established",
     ]);
-    expect(trends.classification_filtered).toHaveLength(2);
-    expect(searched).toEqual(["fresh tool", "board game", "uncertain game"]);
-    const brief = await createBrief(cfg, store, [], { trends }, {});
+    expect(trends.candidates).toHaveLength(2);
+    expect(trends.classification_filtered[0]).toMatchObject({
+      term: "sports match",
+      classification: { is_offline_sports_event: true },
+    });
+    expect(
+      trends.candidates.map(
+        (r: { classification: { decision: string } }) =>
+          r.classification.decision,
+      ),
+    ).toEqual(["confirmed", "uncertain"]);
+    expect(searched).toEqual(["fresh tool", "sports match", "uncertain game"]);
+    const pages = await researchPages(cfg, state, {
+      candidates: [
+        {
+          keyword: "page game",
+          url: "https://example.test/game",
+          anchors: ["Play online"],
+        },
+        {
+          keyword: "steady page",
+          url: "https://example.test/steady",
+          anchors: [],
+        },
+      ],
+    });
+    const lead = [
+      { term: "lead game" },
+      { term: "steady lead" },
+      { term: "sports match" },
+      { term: "established" },
+    ];
+    const keywords = {
+      rows: [{ phrase: "keyword tool" }, { phrase: "steady keyword" }],
+    };
+    const blocks = { trends, sitemap: { pages } };
+    const screened = await screenReportTerms(
+      cfg,
+      store,
+      lead,
+      blocks,
+      keywords,
+    );
+    const brief = await createBrief(cfg, store, screened.rows);
     expect(brief.error).toBeUndefined();
-    expect(explained).toEqual(["fresh tool"]);
+    expect(explained.sort()).toEqual(
+      [
+        "fresh tool",
+        "uncertain game",
+        "page game",
+        "lead game",
+        "keyword tool",
+      ].sort(),
+    );
+    expect(searched).not.toContain("steady page");
+    expect(searched).not.toContain("steady lead");
+    expect(searched).not.toContain("steady keyword");
+    const html = renderSite(
+      { ...blocks, candidate_screening: screened, brief_terms: brief.rows },
+      new Date(),
+    );
+    for (const term of [
+      "sports match",
+      "steady page",
+      "steady lead",
+      "steady keyword",
+      "established",
+    ])
+      expect(html).not.toContain(term);
+    expect(html).toContain("page game");
+    expect(
+      brief.rows.some((r: { term: string }) => r.term === "sports match"),
+    ).toBe(false);
     const md = briefReport(brief.rows);
     expect(md.split("## 2. 旧词")[0]).not.toContain("fresh tool:");
     expect(md.split("## 2. 旧词")[1]).toContain("fresh tool:");
@@ -179,6 +263,6 @@ it("真实模块串联：记录原始发现，只有曲线和类型均通过的�
   });
   expect(
     store.db.prepare("SELECT count(*) n FROM term_discoveries").get(),
-  ).toEqual({ n: 4 });
+  ).toEqual({ n: 10 });
   expect(usageSummary(state, 1).unpriced).toBe(0);
 });

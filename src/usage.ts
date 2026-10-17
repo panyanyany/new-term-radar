@@ -1,3 +1,4 @@
+import { withResearchCache } from "./research-cache.js";
 import Database from "better-sqlite3";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
@@ -36,14 +37,16 @@ export async function withUsageRun<T>(
   if (context.getStore()) return fn();
   const db = open(state);
   try {
-    return await context.run(
-      {
-        db,
-        run: randomUUID(),
-        command,
-        module: command === "keywords" ? "usecases" : command,
-      },
-      fn,
+    return await withResearchCache(() =>
+      context.run(
+        {
+          db,
+          run: randomUUID(),
+          command,
+          module: command === "keywords" ? "usecases" : command,
+        },
+        fn,
+      ),
     );
   } finally {
     db.close();

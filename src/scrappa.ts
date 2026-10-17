@@ -1,3 +1,4 @@
+import { cachedSearch } from "./research-cache.js";
 import {
   SourceDataError,
   SourceConfigError,
@@ -288,8 +289,15 @@ export interface GoogleSearchResult {
   evidence: SearchEvidence[];
   costMicros: number;
 }
+// 错误示范：Percept 不能作为 perceptle 的匹配证据；按完整名称边界判断。
+export function searchTermPattern(name: string): RegExp {
+  const escaped = name
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\s+/g, "\\s+");
+  return new RegExp(`(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`, "iu");
+}
 // 结构化输出使普通搜索与原始结果只有一个返回通道。
-export async function googleSearchResult(
+async function fetchGoogleSearchResult(
   name: string,
   mode: "exact" | "broad" = "exact",
 ): Promise<GoogleSearchResult> {
@@ -328,13 +336,7 @@ export async function googleSearchResult(
   }
   if (body.error || !Array.isArray(body.organic_results))
     throw new ScrappaError("Google search missing organic results");
-  const escaped = name
-    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\s+/g, "\\s+");
-  const match = new RegExp(
-    `(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`,
-    "iu",
-  );
+  const match = searchTermPattern(name);
   const seen = new Set<string>(),
     out: SearchEvidence[] = [];
   for (const row of body.organic_results) {
@@ -372,6 +374,23 @@ export async function googleSearchResult(
     evidence: out,
     costMicros: 303,
   };
+}
+// 缓存键包含服务地址、模式和原始查询；缓存命中不增加模块费用或账本请求。
+export async function googleSearchResult(
+  name: string,
+  mode: "exact" | "broad" = "exact",
+): Promise<GoogleSearchResult> {
+  const { value, reused } = await cachedSearch(
+    JSON.stringify([
+      process.env.SCRAPPA_API_URL ?? "https://scrappa.co",
+      mode,
+      name,
+      "en",
+      "us",
+    ]),
+    () => fetchGoogleSearchResult(name, mode),
+  );
+  return { ...value, costMicros: reused ? 0 : value.costMicros };
 }
 // 旧关键词流程保持精确搜索及原元组接口，避免根词改动影响其他来源。
 export async function googleSearch(name: string): Promise<[Data[], number]> {

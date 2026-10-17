@@ -1,3 +1,4 @@
+import { researchPages } from "./page-research.js";
 import { pageDiff } from "./pages.js";
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 import { gunzipSync } from "node:zlib";
@@ -84,7 +85,7 @@ export function slugText(url: string): string {
     .replace(/[/_\-]+/g, " ");
 }
 export async function diff(cfg: Config, state: string): Promise<Data> {
-  const pages = await pageDiff(cfg, state);
+  const pages = await researchPages(cfg, state, await pageDiff(cfg, state));
   if (!Object.keys(cfg.sitemaps).length) return { sites: {}, terms: [], pages };
   const report: Data = {},
     recent: [string, string][] = [],

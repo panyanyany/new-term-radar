@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+import { loadPageBatch } from "./page-batches.js";
+import { researchPages } from "./page-research.js";
+import { screenReportTerms } from "./report-screening.js";
+import { publishSite } from "./site.js";
 import { rememberDiscoveries } from "./term-observations.js";
 import { sourceFailure } from "./source-errors.js";
 import { createBrief, briefReport } from "./brief-report.js";
@@ -22,6 +26,7 @@ import {
   type Data,
 } from "./core.js";
 import { xNew, hfNew } from "./sources.js";
+import { saveSecondLevelBatch } from "./trends-batches.js";
 import { discoverRoots } from "./trends-roots.js";
 import { breakouts } from "./breakout.js";
 import { diff } from "./sitemaps.js";
@@ -54,8 +59,8 @@ export async function run(
   try {
     return await withUsageModule(module ?? "other", fn);
   } catch (e) {
-    if (module === "trends") {
-      sourceFailure("trends_run", {}, e);
+    if (module === "trends" || module === "sitemaps") {
+      sourceFailure(`${module}_run`, {}, e);
     }
     return {
       error: errorText(e),
@@ -113,7 +118,10 @@ export async function main(
   }
   const p = new Command()
     .name("new-term-radar")
-    .argument("<command>", "daily | sources | keywords | leads | costs")
+    .argument(
+      "<command>",
+      "daily | sources | keywords | leads | costs | replay-pages",
+    )
     .argument("[names...]")
     .option(
       "--repo <mapping>",
@@ -121,6 +129,7 @@ export async function main(
       (v: string, a: string[]) => [...a, v],
       [],
     )
+    .option("--batch <id>", "local page batch ID for replay-pages")
     .option("--days <days>", "lead window", "7")
     .option(
       "--by <group>",
@@ -140,7 +149,16 @@ export async function main(
     args = p.opts(),
     names = rest,
     skip = new Set<string>(args.skip.split(",").filter(Boolean));
-  if (!["daily", "sources", "keywords", "leads", "costs"].includes(command))
+  if (
+    ![
+      "daily",
+      "sources",
+      "keywords",
+      "leads",
+      "costs",
+      "replay-pages",
+    ].includes(command)
+  )
     throw new Error("unknown command");
   if ([...skip].some((s) => !SKIPPABLE.includes(s)))
     throw new Error("--skip: unknown signal");
@@ -179,10 +197,26 @@ export async function main(
   }
   if (command === "keywords" && !names.length)
     throw new Error("keywords: give at least one name");
+  if (command === "replay-pages" && !args.batch)
+    throw new Error("replay-pages: --batch is required");
   const cfg = loadConfig(args.config);
   if (skip.has("judge")) cfg.judge.model = "";
   mkdirSync(args.state, { recursive: true });
   return withUsageRun(args.state, command, async () => {
+    if (command === "replay-pages") {
+      const pages = loadPageBatch(args.state, args.batch);
+      const researched = await withUsageModule("sitemaps", () =>
+        researchPages(cfg, args.state, pages),
+      );
+      const result = JSON.stringify(
+        { ...researched, research_batch: args.batch, usage: currentUsage() },
+        null,
+        2,
+      );
+      if (args.out) writeFileSync(args.out, result);
+      output(result);
+      return 0;
+    }
     if (command === "keywords") {
       const repos: Record<string, string> = {};
       for (const r of args.repo) {
@@ -205,14 +239,18 @@ export async function main(
     if (daily) {
       blocks.trends = await run(
         () =>
-          discoverRoots(cfg, (rows) => {
-            const observations = new Store(args.state);
-            try {
-              rememberDiscoveries(observations, rows);
-            } finally {
-              observations.close();
-            }
-          }),
+          discoverRoots(
+            cfg,
+            (rows) => {
+              const observations = new Store(args.state);
+              try {
+                rememberDiscoveries(observations, rows);
+              } finally {
+                observations.close();
+              }
+            },
+            (snapshot) => saveSecondLevelBatch(args.state, snapshot),
+          ),
         skip.has("trends"),
         "trends",
       );
@@ -271,10 +309,15 @@ export async function main(
             "review",
           ),
           summ = await run(() => db.summary());
-        const brief = await withUsageModule("report", () =>
-          createBrief(cfg, db, lead, blocks, extra.usecases, args.out),
+        const screened = await withUsageModule("candidates", () =>
+          screenReportTerms(cfg, db, lead, blocks, extra.usecases),
         );
-        text = briefReport(brief.rows, new Date(), [
+        blocks.candidate_screening = screened;
+        const brief = await withUsageModule("report", () =>
+          createBrief(cfg, db, screened.rows, args.out),
+        );
+        const generatedAt = new Date();
+        text = briefReport(brief.rows, generatedAt, [
           ...Object.values(blocks),
           rev,
           judged,
@@ -286,6 +329,7 @@ export async function main(
             args.out.slice(0, ext ? -ext.length : undefined) + ".json",
             JSON.stringify(
               {
+                generated_at: generatedAt.toISOString(),
                 brief_terms: brief.rows,
                 brief_error: brief.error,
                 leads: lead,
@@ -325,7 +369,17 @@ export async function main(
         }
         text = report.sources(cfg, lead, blocks, extra);
       }
-      if (args.out) writeFileSync(args.out, text);
+      if (args.out) {
+        writeFileSync(args.out, text);
+        // 仅本机显式启用发布；网站生成失败保留旧页面，并暴露异常。
+        if (daily && process.env.RADAR_SITE_DIR) {
+          const ext = extname(args.out);
+          publishSite(
+            args.out.slice(0, ext ? -ext.length : undefined) + ".json",
+            process.env.RADAR_SITE_DIR,
+          );
+        }
+      }
       output(text);
       if (args.mail)
         output(

@@ -82,20 +82,7 @@
     "country_max": 8
   },
   "gsc": {},
-  "pages": {
-    "media.io": {
-      "url": "https://www.media.io/"
-    },
-    "lightx-blog": {
-      "url": "https://www.lightxeditor.com/blog/",
-      "include": "^/blog/[^/]+/?$",
-      "exclude": "^/blog/(?:ai|photo-editing|video-editing|design|uncategorized)/?$"
-    },
-    "renderpop": {
-      "url": "https://www.renderpop.app/",
-      "exclude": "^/(?:create|assets|login|signup|pricing)/?$"
-    }
-  },
+  "pages": {},
   "trends_roots": {
     "roots": ["game"],
     "windows": [1, 3, 7],

@@ -1,3 +1,4 @@
+import { collectTerms } from "../src/report-terms.js";
 import { SourceTransportError } from "../src/source-errors.js";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -28,28 +29,32 @@ const blocks = (context = "evidence") => ({
 it("缓存按证据、模型、版本失效，不依赖中文文案", async () => {
   const cfg = loadConfig("config.example.json");
   vi.mocked(chat).mockResolvedValue(answer());
-  await createBrief(cfg, store, [], blocks(), {});
-  await createBrief(cfg, store, [], blocks(), {});
+  await createBrief(cfg, store, collectTerms([], blocks(), {}));
+  await createBrief(cfg, store, collectTerms([], blocks(), {}));
   expect(chat).toHaveBeenCalledTimes(1);
-  await createBrief(cfg, store, [], blocks("new evidence"), {});
+  await createBrief(cfg, store, collectTerms([], blocks("new evidence"), {}));
   expect(chat).toHaveBeenCalledTimes(2);
   cfg.usecases.model = "another";
-  await createBrief(cfg, store, [], blocks("new evidence"), {});
+  await createBrief(cfg, store, collectTerms([], blocks("new evidence"), {}));
   expect(chat).toHaveBeenCalledTimes(3);
   store.db.prepare("UPDATE trends_explanations SET version='old'").run();
-  await createBrief(cfg, store, [], blocks("new evidence"), {});
+  await createBrief(cfg, store, collectTerms([], blocks("new evidence"), {}));
   expect(chat).toHaveBeenCalledTimes(4);
 });
 it("不可靠解释每轮重试；失败不清除历史解释", async () => {
   const cfg = loadConfig("config.example.json");
   vi.mocked(chat).mockResolvedValue(answer(false));
-  await createBrief(cfg, store, [], blocks(), {});
-  await createBrief(cfg, store, [], blocks(), {});
+  await createBrief(cfg, store, collectTerms([], blocks(), {}));
+  await createBrief(cfg, store, collectTerms([], blocks(), {}));
   expect(chat).toHaveBeenCalledTimes(2);
   vi.mocked(chat).mockResolvedValue(answer());
-  await createBrief(cfg, store, [], blocks(), {});
+  await createBrief(cfg, store, collectTerms([], blocks(), {}));
   vi.mocked(chat).mockRejectedValue(new SourceTransportError("HTTP 504"));
-  const failed = await createBrief(cfg, store, [], blocks("changed"), {});
+  const failed = await createBrief(
+    cfg,
+    store,
+    collectTerms([], blocks("changed"), {}),
+  );
   expect(failed.error).toContain("504");
   expect(
     store.db
@@ -65,9 +70,7 @@ it("其他来源的资料不足缓存不被 Trends 规则清空", async () => {
   const result = await createBrief(
     cfg,
     store,
-    [{ term: "legacy", named: 1 }],
-    {},
-    {},
+    collectTerms([{ term: "legacy", named: 1 }], {}, {}),
   );
   expect(result.rows[0].explanation).toBe("含义待确认。");
   expect(chat).not.toHaveBeenCalled();
@@ -90,9 +93,7 @@ it("旧报告的过滤词可恢复首次发现，仍不回灌进本轮词表", a
   const result = await createBrief(
     cfg,
     store,
-    [],
-    {},
-    {},
+    collectTerms([], {}, {}),
     join(state, "prior.md"),
   );
   expect(result.rows).toEqual([]);

@@ -1,5 +1,7 @@
 import { z } from "zod";
 export const DEFAULT_TRENDS_CATEGORY = 8;
+export const SECOND_LEVEL_LIMIT = 10;
+export const SECOND_LEVEL_SORT = "rising-v1";
 const schema = z
   .object({
     roots: z.array(z.string().trim().min(1).max(100)).default([]),

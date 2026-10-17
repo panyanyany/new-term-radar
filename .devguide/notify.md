@@ -53,3 +53,7 @@ SQLite `report_terms` 独立保存归一化词键、精确 UTC 首次/最近发�
 AI 解释若遇到 504，可复用本轮报告 JSON 的候选与 Google 搜索证据分批补充缺失解释，不必重新抓取来源或重复搜索。补跑的请求明细需合并入原日报运行统计；超时请求无 usage 时保留“费用未知”，不能按免费计。补充完成后再发送完整私聊报告。
 
 根词首次出现时间在 Rising 去重后即写入 term_discoveries，是否通过曲线/分类不改变发现时间。日报仍仅展示本轮最终通过的词；Trends 解释的证据与版本缓存见 [trends.md](trends.md)。
+
+## 定时通知路由配置
+
+定时通知当前使用本机 `.env` 指定的 Telegram 私人会话，`FEISHU_GROUP_HOOK` 为空，群聊发送暂停。路由无需改代码或 cron：`TELEGRAM_CHAT_ID` 决定 Telegram 收件人，`FEISHU_GROUP_HOOK` 为空关闭飞书群；两个变量都为空时全部跳过。真实 ID、用户名、token、webhook 以及原配置备份只保存在被 Git 忽略的本机文件中。切换收件人前使用 Bot API getChat 核对 private 类型、用户名及数字 ID；只验证配置不发送测试消息。未配置自动恢复时间，恢复群聊需明确调整本地配置。进程已设置的同名环境变量优先于 `.env`，本机 cron 未内联覆盖这两个变量。

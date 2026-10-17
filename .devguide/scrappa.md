@@ -5,7 +5,7 @@
 - `src/scrappa.ts` 使用官方 TypeScript MCP SDK v1 的 Streamable HTTP 客户端连接 `https://scrappa.co/mcp`，初始化后调用 `call-endpoint`；`params` 是 JSON 字符串。
 - 设置 `X_TIMELINE_PROVIDER=scrappa` 时，`sources.xNew()`：通过 `x-twitter-user-tweets` 读取账号正文、点赞和 UTC 发布时间，最多每账号 3 页，覆盖 30 小时。游标重复、分页卡住或达到预算仍未覆盖窗口时显式报错，不覆盖词表。`count` 只是建议页大小，实测请求 2 条仍返回 22 条。
 - `review.review()` 使用 `google-trends-interest` 单词序列；`usecases.fetchSeries()` 每批参考词加最多四词，从共同尺度提取形状与规模。
-- 关键词取证通过同一密钥调用 REST `GET /api/search`：通用关键词流程为精确短语搜索，根词 Rising 流程为不加引号的普通搜索，`hl=en/gl=us`，只用首页最多八条标题/摘要/链接，不抓正文、不翻页。调用记录端点为 `/api/search`，按 Starter 303 micro-USD 估算；Google Search 不经 MCP，Trends 等端点继续使用 MCP。
+- 关键词取证通过同一密钥调用 REST `GET /api/search`：通用关键词流程为精确短语搜索，根词 Rising 流程先普通搜索，无原词匹配证据时仅补一次带引号精确搜索，`hl=en/gl=us`，只用首页最多八条标题/摘要/链接，不抓正文、不翻页。调用记录端点为 `/api/search`，按 Starter 303 micro-USD 估算；Google Search 不经 MCP，Trends 等端点继续使用 MCP。
 - X 账号采集默认使用 Twitter AIO；AIsa 高赞搜索作为 `X_SEARCH_PROVIDER=aisa` 备选，负责 WHOIS 综合筛选和模型调用；关键词量级使用 Trends 固定参考词推算，不请求 Google Ads。见 [twitter-aio.md](twitter-aio.md)。
 - GoAnyAPI 负责带 `top/rising` 分类的相关查询和单国日序列。Scrappa 相关查询没有作为生产替代来源。
 
