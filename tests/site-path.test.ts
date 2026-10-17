@@ -65,3 +65,87 @@ it("新旧报告排序说明不同，增长缺失显示未记录，零增长保�
   expect(legacy("#deferred .note").text()).toContain("历史报告未记录排序策略");
   expect(legacy("#deferred .note").text()).not.toContain("统一按 Rising");
 });
+
+it("仅超限二级候选四词一组，各组首词为参考词且曲线链接不带类目", () => {
+  const deferred = Array.from({ length: 9 }, (_, i) => ({
+    term: `pending ${i}`,
+  }));
+  const $ = load(
+    renderSite(
+      {
+        brief_terms: [],
+        trends: {
+          candidates: [
+            {
+              term: "already studied",
+              trend_filter: { benchmark: "custom reference" },
+            },
+          ],
+          second_level: { discovered: [{ term: "already studied" }], deferred },
+        },
+      },
+      date,
+    ),
+  );
+  const links = $(".trend-group");
+  expect(links).toHaveLength(3);
+  const groups = links.toArray().map((a) => {
+    const url = new URL($(a).attr("href")!);
+    expect(url.searchParams.get("date")).toBe("now 7-d");
+    expect(url.searchParams.has("cat")).toBe(false);
+    expect(url.searchParams.has("category_code")).toBe(false);
+    return url.searchParams.get("q")!.split(",");
+  });
+  expect(groups.map((g) => g.length)).toEqual([5, 5, 2]);
+  expect(groups.every((g) => g[0] === "custom reference")).toBe(true);
+  expect(groups.flatMap((g) => g.slice(1))).toEqual(
+    deferred.map((row) => row.term),
+  );
+  expect(links.text()).not.toContain("already studied");
+});
+
+it("分组名称转义、去重，不重复参考词；所有外部链接禁止发送来源信息", () => {
+  const term = '<img src=x onerror="alert(1)"> & 中文';
+  const $ = load(
+    renderSite(
+      {
+        brief_terms: [{ term: "studied", first_seen_at: date.toISOString() }],
+        trends: {
+          candidates: [
+            {
+              term: "studied",
+              trend_filter: {
+                benchmark: "hex picker",
+                curve: [
+                  [1, 2, 3],
+                  [2, 3, 4],
+                ],
+              },
+            },
+          ],
+          second_level: {
+            deferred: [{ term }, { term }, { term: "hex picker" }],
+          },
+        },
+      },
+      date,
+    ),
+  );
+  expect($(".trend-group img")).toHaveLength(0);
+  expect($(".trend-group").text()).toContain(term);
+  expect(new URL($(".trend-group").attr("href")!).searchParams.get("q")).toBe(
+    `hex picker,${term}`,
+  );
+  expect($("meta[name=referrer]").attr("content")).toBe("no-referrer");
+  const external = $("a[href^='https://']");
+  expect(external.length).toBeGreaterThan(1);
+  external.each((_, link) => {
+    expect($(link).attr("referrerpolicy")).toBe("no-referrer");
+    expect($(link).attr("rel")?.split(" ")).toEqual(
+      expect.arrayContaining(["noopener", "noreferrer"]),
+    );
+  });
+  expect(
+    load(renderSite({ brief_terms: [] }, date))(".deferred-trends"),
+  ).toHaveLength(0);
+});

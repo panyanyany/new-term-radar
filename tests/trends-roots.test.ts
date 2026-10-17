@@ -63,14 +63,18 @@ vi.mock("../src/scrappa.js", async (original) => ({
 }));
 vi.mock("../src/core.js", async (original) => ({
   ...(await original<typeof import("../src/core.js")>()),
-  jsonFetch: vi.fn(async () => ({ results: [{ successful: true }] })),
+  jsonFetch: vi.fn(async (_url, init) => ({
+    results: JSON.parse(String(init.body)).calls.map(() => ({
+      successful: true,
+    })),
+  })),
 }));
 it("游戏类目 8 传给接口，所有原词进入搜索", async () => {
   const { call } = await import("../src/aisa.js");
   const { googleSearchResult } = await import("../src/scrappa.js");
   const { loadConfig } = await import("../src/core.js");
   const cfg = loadConfig("config.example.json");
-  cfg.trends_roots = { roots: ["game"], windows: [1] };
+  cfg.trends_roots = { provider: "aisa", roots: ["game"], windows: [1] };
   const response = (root: string) => ({
     root_0_1: {
       status_code: 20000,
@@ -126,7 +130,7 @@ it("未通过曲线筛选的候选不触发搜索", async () => {
     cost_micros: 303,
   });
   const cfg = loadConfig("config.example.json");
-  cfg.trends_roots = { roots: ["game"], windows: [1] };
+  cfg.trends_roots = { provider: "aisa", roots: ["game"], windows: [1] };
   const result = await discoverRoots(cfg);
   expect(result.candidates).toEqual([]);
   expect(result.filtered).toHaveLength(1);
@@ -142,7 +146,7 @@ it("分类未确认的词仍进入日报候选", async () => {
     filtered: [],
   });
   const cfg = loadConfig("config.example.json");
-  cfg.trends_roots = { roots: ["game"], windows: [1] };
+  cfg.trends_roots = { provider: "aisa", roots: ["game"], windows: [1] };
   const result = await discoverRoots(cfg);
   expect(result.candidates[0]).toMatchObject({
     term: "games",
@@ -188,7 +192,7 @@ it("原词匹配则不补查，偏题仅补一次精确查询并保留原始响�
     costMicros: 303,
   });
   const cfg = loadConfig("config.example.json");
-  cfg.trends_roots = { roots: ["game"], windows: [1] };
+  cfg.trends_roots = { provider: "aisa", roots: ["game"], windows: [1] };
   const result = await discoverRoots(cfg);
   expect(googleSearchResult).toHaveBeenNthCalledWith(1, "perceptle", "broad");
   expect(googleSearchResult).toHaveBeenNthCalledWith(2, "perceptle", "exact");
@@ -241,7 +245,12 @@ it("一级通过全部门禁后扩展，最多十词、继承类目且不扩展�
   const { googleSearchResult } = await import("../src/scrappa.js");
   const { loadConfig } = await import("../src/core.js");
   const cfg = loadConfig("config.example.json");
-  cfg.trends_roots = { roots: ["game"], windows: [7], category_code: 8 };
+  cfg.trends_roots = {
+    provider: "aisa",
+    roots: ["game"],
+    windows: [7],
+    category_code: 8,
+  };
   const response = (root: string, terms: string[]) => ({
     root_0_7: {
       status_code: 20000,
@@ -276,16 +285,18 @@ it("一级通过全部门禁后扩展，最多十词、继承类目且不扩展�
     100,
   ]);
   vi.mocked(call).mockResolvedValueOnce([
-    response("first", [
-      "second",
-      "second",
-      "first",
-      "game",
-      ...Array.from({ length: 14 }, (_, i) => `child${i}`),
-    ]),
-    200,
+    {
+      ...response("first", [
+        "second",
+        "second",
+        "first",
+        "game",
+        ...Array.from({ length: 14 }, (_, i) => `child${i}`),
+      ]),
+      root_1_7: response("other", []).root_0_7,
+    },
+    250,
   ]);
-  vi.mocked(call).mockResolvedValueOnce([response("other", []), 50]);
   vi.mocked(filterRootTrends).mockImplementationOnce(async (rows) => ({
     candidates: rows.map((row) => ({
       ...row,
@@ -304,7 +315,7 @@ it("一级通过全部门禁后扩展，最多十词、继承类目且不扩展�
   }));
   const observed = vi.fn();
   const result = await discoverRoots(cfg, observed);
-  expect(call).toHaveBeenCalledTimes(3);
+  expect(call).toHaveBeenCalledTimes(2);
   expect(vi.mocked(call).mock.calls[1][0][0].arguments.body[0]).toMatchObject({
     keywords: ["first"],
     category_code: 8,
@@ -341,7 +352,7 @@ it("一级词被赛事门禁拦截后，即使超过三倍也不发起二级查�
   const { classifyCandidates } = await import("../src/candidate-kind.js");
   const { loadConfig } = await import("../src/core.js");
   const cfg = loadConfig("config.example.json");
-  cfg.trends_roots = { roots: ["game"], windows: [1] };
+  cfg.trends_roots = { provider: "aisa", roots: ["game"], windows: [1] };
   vi.mocked(call).mockClear();
   vi.mocked(filterRootTrends).mockImplementationOnce(async (rows) => ({
     candidates: rows.map((row) => ({

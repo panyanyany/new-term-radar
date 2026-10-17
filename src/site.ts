@@ -1,3 +1,4 @@
+import { collectionStatusSchema, collectionNotice } from "./trends-status.js";
 import {
   readFileSync,
   statSync,
@@ -80,6 +81,7 @@ const publicReport = z.object({
     .optional(),
   trends: z
     .object({
+      collection_status: collectionStatusSchema.optional(),
       candidates: z.array(publicCandidate).default([]),
       second_level: z
         .object({
@@ -326,6 +328,10 @@ function birthPath(
   return steps;
 }
 
+// 复制按钮独立于路径触发按钮，复制原词，不包含表格说明或图标文字。
+function termCopyButton(term: string): string {
+  return `<button type="button" class="term-copy" data-copy-term="${escape(term)}" aria-label="复制词语 ${escape(term)}" title="复制词语"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="13" height="14" rx="2"/><path d="M16 7V3H3v14h4"/></svg></button>`;
+}
 function section(
   id: string,
   title: string,
@@ -336,17 +342,44 @@ function section(
   <div class="section-title"><h2 id="${id}-title">${title}<span class="count" aria-live="polite">${String(rows.length).padStart(2, "0")}</span></h2><span class="note">${note}</span></div>
   <div class="table-wrap" tabindex="0" role="region" aria-label="${title}表格，可横向滚动"><table>
   <thead><tr><th scope="col" class="number-col">#</th><th scope="col" class="trend-col">Google Trends · 近7天</th><th scope="col" class="term-col">词语</th><th scope="col" class="discovered-col">发现时间</th><th scope="col" class="trend-kind-col">趋势分类</th><th scope="col" class="kind-col">AI 分类</th><th scope="col">一句话解释</th></tr></thead>
-  <tbody>${rows.map((row, i) => `<tr><td class="ordinal">${String(i + 1).padStart(2, "0")}</td><td class="trend-cell">${row.curve ? `<a class="chart-link" href="https://trends.google.com/trends/explore?date=now%207-d&amp;q=${encodeURIComponent([row.benchmark ?? "hex picker", row.term].join(","))}" target="_blank" rel="noopener noreferrer" aria-label="在 Google Trends 比较${escape(row.term)}与${escape(row.benchmark ?? "hex picker")}">${renderTrendChart(row.curve)}</a><span class="reference-name">参考词：${escape(row.benchmark ?? "hex picker")}</span>` : renderTrendChart(undefined)}</td><th scope="row" class="term-name"><button type="button" class="term-trigger" data-birth-path="${escape(JSON.stringify(row.birth_path ?? []))}">${escape(row.term)}</button></th><td class="discovered-cell"><time data-local-time datetime="${new Date(row.first_seen_at).toISOString()}">${new Date(row.first_seen_at).toISOString()}</time></td><td class="trend-kind-cell">${trendLabel(row)}</td><td class="kind-cell" title="${escape(row.classification?.reason ?? "尚无分类记录")}">${classificationLabel(row.classification)}</td><td class="explanation">${escape(row.explanation || "目前资料不足，具体含义待确认。")}</td></tr>`).join("")}</tbody>
+  <tbody>${rows.map((row, i) => `<tr><td class="ordinal">${String(i + 1).padStart(2, "0")}</td><td class="trend-cell">${row.curve ? `<a class="chart-link" href="https://trends.google.com/trends/explore?date=now%207-d&amp;q=${encodeURIComponent([row.benchmark ?? "hex picker", row.term].join(","))}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" aria-label="在 Google Trends 比较${escape(row.term)}与${escape(row.benchmark ?? "hex picker")}">${renderTrendChart(row.curve)}</a><span class="reference-name">参考词：${escape(row.benchmark ?? "hex picker")}</span>` : renderTrendChart(undefined)}</td><th scope="row" class="term-name"><button type="button" class="term-trigger term-text" data-birth-path="${escape(JSON.stringify(row.birth_path ?? []))}">${escape(row.term)}</button>${termCopyButton(row.term)}</th><td class="discovered-cell"><time data-local-time datetime="${new Date(row.first_seen_at).toISOString()}">${new Date(row.first_seen_at).toISOString()}</time></td><td class="trend-kind-cell">${trendLabel(row)}</td><td class="kind-cell" title="${escape(row.classification?.reason ?? "尚无分类记录")}">${classificationLabel(row.classification)}</td><td class="explanation">${escape(row.explanation || "目前资料不足，具体含义待确认。")}</td></tr>`).join("")}</tbody>
   </table></div>
   <p class="empty"${rows.length ? " hidden" : ""}>本期暂无符合条件的词语。</p></section>`;
+}
+// 只为超限未查询候选生成手动链接；参考词占一个位置，四词分组不请求任何 API。
+function deferredTrendLinks(
+  rows: z.infer<typeof publicCandidate>[],
+  benchmark: string,
+): string {
+  const unique = new Map<string, string>();
+  for (const row of rows) {
+    const key = termKey(row.term);
+    if (key !== termKey(benchmark) && !unique.has(key))
+      unique.set(key, row.term);
+  }
+  const terms = [...unique.values()];
+  const groups: string[] = [];
+  for (let i = 0; i < terms.length; i += 4) {
+    const group = terms.slice(i, i + 4);
+    const url = new URL("https://trends.google.com/trends/explore");
+    url.searchParams.set("date", "now 7-d");
+    url.searchParams.set("q", [benchmark, ...group].join(","));
+    // 错误示范：曲线链接添加来源 cat=8，会把参考词限制到游戏分类而失真。
+    groups.push(
+      `<a class="trend-group" href="${escape(url.href)}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"><span class="group-number">${String(groups.length + 1).padStart(2, "0")} ↗</span><span>${group.map(escape).join(" · ")}</span></a>`,
+    );
+  }
+  if (!groups.length) return "";
+  return `<div class="deferred-trends"><h3>分组查看七天趋势</h3><p class="note">仅超限未查询候选 · 每组最多四词 + 参考词：${escape(benchmark)} · 点击后打开 Google Trends</p><div class="trend-groups">${groups.join("")}</div></div>`;
 }
 // 超限候选单独展示，不冒充通过曲线、分类或进入本轮词表。
 function deferredSection(
   rows: z.infer<typeof publicCandidate>[],
   strategy?: string,
+  benchmark = "hex picker",
 ): string {
   if (!rows.length) return "";
-  return `<section id="deferred" aria-labelledby="deferred-title"><div class="section-title"><h2 id="deferred-title">二级候选 · 超限未查询<span class="count">${rows.length}</span></h2><span class="note">${strategy === SECOND_LEVEL_SORT ? "统一按 Rising 信号排序，每轮仅研究前 10 个二级词" : "历史报告未记录排序策略"}；以下词未查询曲线、搜索或 AI 分类</span></div><div class="table-wrap" tabindex="0" role="region" aria-label="超限二级候选表格，可横向滚动"><table><thead><tr><th>优先级</th><th>词语</th><th>Rising 增长</th><th>发现路径</th><th>状态</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${row.priority?.rank ?? "—"}</td><th scope="row" class="term-name">${escape(row.term)}</th><td>${row.priority ? (row.priority.breakout ? "Breakout" : row.priority.max_growth === null ? "未记录" : `${row.priority.max_growth}%`) : "未记录"}</td><td class="explanation">${[...new Set((row.appearances ?? []).map((a) => (a.root_path ?? [a.root, row.term]).join(" → ")))].map(escape).join("<br>")}</td><td>超限未查询</td></tr>`).join("")}</tbody></table></div><p class="empty" hidden>无匹配候选。</p></section>`;
+  return `<section id="deferred" aria-labelledby="deferred-title"><div class="section-title"><h2 id="deferred-title">二级候选 · 超限未查询<span class="count">${rows.length}</span></h2><span class="note">${strategy === SECOND_LEVEL_SORT ? "统一按 Rising 信号排序，每轮仅研究前 10 个二级词" : "历史报告未记录排序策略"}；以下词未查询曲线、搜索或 AI 分类</span></div>${deferredTrendLinks(rows, benchmark)}<div class="table-wrap" tabindex="0" role="region" aria-label="超限二级候选表格，可横向滚动"><table><thead><tr><th>优先级</th><th>词语</th><th>Rising 增长</th><th>发现路径</th><th>状态</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${row.priority?.rank ?? "—"}</td><th scope="row" class="term-name"><span class="term-text">${escape(row.term)}</span>${termCopyButton(row.term)}</th><td>${row.priority ? (row.priority.breakout ? "Breakout" : row.priority.max_growth === null ? "未记录" : `${row.priority.max_growth}%`) : "未记录"}</td><td class="explanation">${[...new Set((row.appearances ?? []).map((a) => (a.root_path ?? [a.root, row.term]).join(" → ")))].map(escape).join("<br>")}</td><td>超限未查询</td></tr>`).join("")}</tbody></table></div><p class="empty" hidden>无匹配候选。</p></section>`;
 }
 // 新旧词按报告时间划分，浏览时间不会改变已发布日报的分类。
 export function renderSite(input: unknown, fallbackDate: Date): string {
@@ -383,16 +416,17 @@ export function renderSite(input: unknown, fallbackDate: Date): string {
   const old = rows.filter((r) => Date.parse(r.first_seen_at) <= cutoff);
   const updated = iso;
   return `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="description" content="新词雷达最新日报：当天新词、旧词与一句话解释。"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='%23256b4a'/%3E%3C/svg%3E"><title>新词雷达 · 最新日报</title><style>${siteStyle}
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><meta name="description" content="新词雷达最新日报：当天新词、旧词与一句话解释。"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='%23256b4a'/%3E%3C/svg%3E"><title>新词雷达 · 最新日报</title><style>${siteStyle}
 ${tooltipStyle}</style></head>
-<body><main class="shell">
+<body><main class="shell"><span id="copy-status" class="copy-status" role="status" aria-live="polite"></span>
 <header class="masthead"><a class="wordmark" href="#" aria-label="新词雷达首页"><span class="mark" aria-hidden="true"></span>新词雷达</a><span class="edition">FIELD NOTES / DAILY</span></header>
 <div class="intro"><div><h1>发现，值得留意的新词。</h1><p class="subtitle">当天新词与再次出现的旧词，每个词用一句话说明。</p></div><p class="updated">报告更新<time data-local-time datetime="${iso}">${updated}</time></p></div>
+${collectionNotice(report.trends?.collection_status) ? `<p class="note" role="status">${escape(collectionNotice(report.trends?.collection_status))}</p>` : ""}
 <p class="chart-legend"><span class="reference-key">蓝线：参考词</span><span class="term-key">红线：当前词</span><span>相对热度 · 参考词均值优先居中 · 曲线截至报告时间</span></p>
 <div class="tools"><nav aria-label="日报分区"><a href="#fresh">当天新词 ↗</a><a href="#old">旧词 ↗</a></nav><div class="search"><label for="search">查找词语</label><input id="search" type="search" placeholder="输入词语或解释中的关键词" autocomplete="off"></div></div>
 ${section("fresh", "当天新词", "本项目首次发现未满 24 小时", fresh)}
 ${section("old", "旧词", "本轮再次出现，首次发现已满 24 小时", old)}
-${deferredSection(report.trends?.second_level?.deferred ?? [], report.trends?.second_level?.sorting_strategy)}
+${deferredSection(report.trends?.second_level?.deferred ?? [], report.trends?.second_level?.sorting_strategy, report.trends?.candidates.find((row) => row.trend_filter?.benchmark)?.trend_filter?.benchmark)}
 <footer><p>仅展示本轮候选 · 新旧以本项目首次发现时间为准</p><p>最新一期日报</p></footer>
 </main><script>${tooltipScript}
 ${siteScript}</script></body></html>`;

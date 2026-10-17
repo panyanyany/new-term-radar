@@ -49,6 +49,8 @@
   "gsc": {},
   "pages": {},
   "trends_roots": {
+    "provider": "dataforseo",
+    "standard_wait_minutes": 45,
     "roots": [],
     "windows": [1, 3, 7],
     "category_code": 8

@@ -4,6 +4,8 @@ export const SECOND_LEVEL_LIMIT = 10;
 export const SECOND_LEVEL_SORT = "rising-v1";
 const schema = z
   .object({
+    provider: z.enum(["dataforseo", "aisa"]).default("dataforseo"),
+    standard_wait_minutes: z.number().int().min(0).max(45).default(45),
     roots: z.array(z.string().trim().min(1).max(100)).default([]),
     windows: z
       .array(z.union([z.literal(1), z.literal(3), z.literal(7)]))
@@ -33,12 +35,6 @@ const schema = z
         code: "custom",
         path: ["windows"],
         message: "duplicate windows",
-      });
-    if (v.roots.length * v.windows.length > 20)
-      ctx.addIssue({
-        code: "custom",
-        path: ["roots"],
-        message: "AIsa batch cap is 20",
       });
   });
 export type TrendsConfig = z.infer<typeof schema>;

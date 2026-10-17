@@ -28,6 +28,8 @@ export type Config = Omit<
   | "trends_roots"
 > & {
   trends_roots: {
+    provider?: "dataforseo" | "aisa";
+    standard_wait_minutes?: number;
     roots: string[];
     windows: number[];
     category_code?: number;

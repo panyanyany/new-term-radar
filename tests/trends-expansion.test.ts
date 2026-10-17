@@ -37,12 +37,13 @@ it("后返回父词的高分候选挤入全局前十，反转父词顺序仍一�
   const all = [parent("early"), parent("late")];
   const original = structuredClone(all);
   const query = vi.fn(async (_cfg, roots: string[]) => ({
-    candidates:
-      roots[0] === "early"
+    candidates: roots.flatMap((root) =>
+      root === "early"
         ? Array.from({ length: 11 }, (_, i) =>
             child(`low${i}`, "early", 100 - i),
           )
         : [child("winner", "late", 9000), child("low0", "late", 100)],
+    ),
     windows: [],
     cost_micros: 1,
   }));

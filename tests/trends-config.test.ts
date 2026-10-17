@@ -6,6 +6,8 @@ it("类目默认值与参考词兼容在配置边界统一解析", () => {
     windows: [1, 3, 7],
     category_code: 8,
     benchmark: "reference",
+    provider: "dataforseo",
+    standard_wait_minutes: 45,
   });
   expect(
     resolveTrendsConfig({ benchmark: "specific" }, "legacy").benchmark,
@@ -17,8 +19,19 @@ it.each([
   { windows: [1, 1] },
   { category_code: -1 },
   { roots: ["GAME", "game"] },
-  { roots: Array.from({ length: 7 }, (_, i) => `root${i}`) },
+  { provider: "invalid" },
+  { standard_wait_minutes: -1 },
+  { standard_wait_minutes: 46 },
+  { standard_wait_minutes: 1.5 },
   { benchmark: "bad,word" },
 ])("非法配置在请求前失败：%j", (value) =>
   expect(() => resolveTrendsConfig(value)).toThrow(),
 );
+
+it("根词数不受单次 HTTP 批量上限限制，由供应商实现拆批", () => {
+  const roots = Array.from({ length: 40 }, (_, i) => `root${i}`);
+  expect(resolveTrendsConfig({ roots }).roots).toHaveLength(40);
+  expect(resolveTrendsConfig({ roots, provider: "aisa" }).roots).toHaveLength(
+    40,
+  );
+});

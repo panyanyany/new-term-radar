@@ -176,6 +176,7 @@ it("真实模块串联：记录原始发现，仅明确线下体育赛事不进�
   rememberTerms(store, [{ term: "historical unrelated", context: "旧词" }]);
   const cfg = loadConfig("config.example.json");
   cfg.trends_roots.windows = [1];
+  cfg.trends_roots.provider = "aisa";
   await withUsageRun(state, "integration", async () => {
     const trends = await discoverRoots(cfg, (rows) =>
       rememberDiscoveries(store, rows),

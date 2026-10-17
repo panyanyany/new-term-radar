@@ -436,3 +436,27 @@ it("超限二级候选独立展示路径与状态，不混入新旧词且转义�
   expect(html).not.toContain("PRIVATE_SECRET");
   expect($("pending")).toHaveLength(0);
 });
+
+it("采集不完整显示简短状态，公开页面不泄露原始错误或费用", () => {
+  const html = renderSite(
+    {
+      brief_terms: [],
+      trends: {
+        collection_status: {
+          complete: 1,
+          pending: 2,
+          failed: 1,
+          unknown: 0,
+          batch_ids: ["batch"],
+        },
+        error: "PRIVATE_ERROR",
+        cost_micros: "PRIVATE_FEE",
+      },
+    },
+    date,
+  );
+  expect(html).toContain("上涨词采集未完整");
+  expect(html).toContain("待取回 2");
+  expect(html).not.toContain("PRIVATE_ERROR");
+  expect(html).not.toContain("PRIVATE_FEE");
+});

@@ -1,3 +1,4 @@
+import { collectionNotice, collectionStatusSchema } from "./trends-status.js";
 import { explainTrendsTerms } from "./trends-explanations.js";
 import {
   discoveredAt,
@@ -189,6 +190,13 @@ export function briefReport(
         "## 1. 当天新词",
         rows.filter((r) => Date.parse(r.first_seen_at!) > cut),
       ),
+      ...blocks.flatMap((block) => {
+        const parsed = collectionStatusSchema.safeParse(
+          block.collection_status,
+        );
+        const notice = parsed.success ? collectionNotice(parsed.data) : "";
+        return notice ? [notice, ""] : [];
+      }),
       ...section(
         "## 2. 旧词",
         rows.filter((r) => Date.parse(r.first_seen_at!) <= cut),

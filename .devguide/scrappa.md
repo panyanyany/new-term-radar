@@ -29,7 +29,7 @@
 
 ## top 与 rising
 
-通用关键词研究的可选相关查询使用 GoAnyAPI，`splitRelated()` 优先 rising 再补 top；`otherNames()` 仅允许 rising 中的新产品名产生 `cosearch` 线索。独立根词来源使用 AIsa 转接 DataForSEO，只接受显式 rising，见 [trends.md](trends.md)。
+通用关键词研究的可选相关查询使用 GoAnyAPI，`splitRelated()` 优先 rising 再补 top；`otherNames()` 仅允许 rising 中的新产品名产生 `cosearch` 线索。独立根词来源默认直连 DataForSEO Standard，AIsa Live 保留备选，只接受显式 rising，见 [trends.md](trends.md)。
 
 Google 的 [Top/Rising 定义](https://support.google.com/trends/answer/4355000?hl=en)：top 是相关查询的相对热门程度；rising 是相对前一时段增长最快的查询，带增长百分比或 Breakout。热门不等于上涨，上涨也不保证是刚诞生的新词。
 
@@ -55,8 +55,8 @@ Scrappa 的 1d/7d 各 25 词与该接口 Top 精确匹配 17/19 词，与 Rising
 
 AIsa Search 的工具展示价不是最终报价；相同参数 Batch Quote 为每窗口 $0.011，Batch Use 实际也各 $0.011，共 $0.022，已入本机费用账本（命令 `aisa-related-rising-validation`）。原始发现、报价及响应保存在 `state/aisa-trends-*.json`，测试未写生产候选或发送通知。
 
-其他供应商仅核查公开文档，尚无本机独立密钥实测：GoAnyAPI 明确支持 `relatedQueries.rising` 与 `now 1-d/now 7-d`，小包每次 6 credits × $0.001=$0.006；SerpApi 明确支持 `related_queries.rising` 与这两个窗口，免费每月 250 次、Starter $25/1000 次；DataForSEO 直连 Live 标价 $0.011，Standard $0.0027 但为异步任务且最长 45 分钟。接口文档：<https://goanyapi.com/docs/google-trends-api>、<https://serpapi.com/google-trends-related-queries>、<https://docs.dataforseo.com/v3/keywords_data-google-trends-explore-live/>；价格：各官网 pricing 页面。生产根词来源使用 AIsa 转接 DataForSEO，未直接连接其他供应商。
+其他供应商仅核查公开文档，尚无本机独立密钥实测：GoAnyAPI 明确支持 `relatedQueries.rising` 与 `now 1-d/now 7-d`，小包每次 6 credits × $0.001=$0.006；SerpApi 明确支持 `related_queries.rising` 与这两个窗口，免费每月 250 次、Starter $25/1000 次；DataForSEO 直连 Live 标价 $0.011，Standard $0.0027 但为异步任务且最长 45 分钟。接口文档：<https://goanyapi.com/docs/google-trends-api>、<https://serpapi.com/google-trends-related-queries>、<https://docs.dataforseo.com/v3/keywords_data-google-trends-explore-live/>；价格：各官网 pricing 页面。生产根词来源默认直连 DataForSEO Standard，实测提交单任务 $0.0027、取回 $0；AIsa 转接 Live 保留备选，详见 [dataforseo.md](dataforseo.md)。
 
 ## 根词来源
 
-根词 Rising 使用 AIsa 转接 DataForSEO，曲线与搜索使用 Scrappa。流程、游戏类目、有限超大曲线重查、首次发现记录、AI 分类及解释缓存见 [trends.md](trends.md)。
+根词 Rising 默认使用 DataForSEO Standard，AIsa 转接 Live 为备选，曲线与搜索使用 Scrappa。流程、游戏类目、有限超大曲线重查、首次发现记录、AI 分类及解释缓存见 [trends.md](trends.md)。

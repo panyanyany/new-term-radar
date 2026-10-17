@@ -90,68 +90,66 @@ export async function expandSecondLevel(
   let cost_micros = 0;
   for (const [category, parents] of groups) {
     // 汇总全部合格父词的相关查询，再统一排序；十词限制约束后续研究。
-    for (const parentTerm of parents.keys()) {
-      const roots = [parentTerm];
-      triggers.push(
-        ...roots.map((term) => ({
-          term,
-          category_code: category,
-          reason: "exceeds_reference_3x",
-          discovery_level: 1,
-        })),
+    const roots = [...parents.keys()];
+    triggers.push(
+      ...roots.map((term) => ({
+        term,
+        category_code: category,
+        reason: "exceeds_reference_3x",
+        discovery_level: 1,
+      })),
+    );
+    let related: Data;
+    try {
+      related = await discoverRelated(
+        {
+          ...cfg,
+          trends_roots: { ...cfg.trends_roots, category_code: category },
+        },
+        roots,
       );
-      let related: Data;
-      try {
-        related = await discoverRelated(
-          {
-            ...cfg,
-            trends_roots: { ...cfg.trends_roots, category_code: category },
-          },
-          roots,
-        );
-      } catch (e) {
-        sourceFailure(
-          "second_level_rising",
-          { roots, category_code: category },
-          e,
-        );
-        windows.push({
-          roots,
-          category_code: category,
-          discovery_level: 2,
-          error: errorText(e),
-        });
-        continue;
-      }
-      cost_micros += related.cost_micros;
-      windows.push(
-        ...related.windows.map((window: Data) => ({
-          ...window,
-          discovery_level: 2,
-        })),
+    } catch (e) {
+      sourceFailure(
+        "second_level_rising",
+        { roots, category_code: category },
+        e,
       );
-      for (const original of related.candidates) {
-        const row: Candidate = structuredClone(original);
-        row.appearances = row.appearances.flatMap((appearance) => {
-          const parent = parents.get(appearance.root)!;
-          return parent.appearances
-            .filter(
-              (a) =>
-                a.discovery_level !== 2 && a.request.category_code === category,
-            )
-            .map((a) => ({
-              ...appearance,
-              discovery_level: 2,
-              root_path: [a.root, parent.term, row.term],
-            }));
-        });
-        const key = termKey(row.term);
-        // 错误示范：返回父词或已有一级词时重新入队，会重复收费甚至形成循环。
-        const existing = seen.get(key) ?? second.get(key);
-        if (existing) existing.appearances.push(...row.appearances);
-        else if (!cfg.trends_roots.roots.some((root) => termKey(root) === key))
-          second.set(key, row);
-      }
+      windows.push({
+        roots,
+        category_code: category,
+        discovery_level: 2,
+        error: errorText(e),
+      });
+      continue;
+    }
+    cost_micros += related.cost_micros;
+    windows.push(
+      ...related.windows.map((window: Data) => ({
+        ...window,
+        discovery_level: 2,
+      })),
+    );
+    for (const original of related.candidates) {
+      const row: Candidate = structuredClone(original);
+      row.appearances = row.appearances.flatMap((appearance) => {
+        const parent = parents.get(appearance.root)!;
+        return parent.appearances
+          .filter(
+            (a) =>
+              a.discovery_level !== 2 && a.request.category_code === category,
+          )
+          .map((a) => ({
+            ...appearance,
+            discovery_level: 2,
+            root_path: [a.root, parent.term, row.term],
+          }));
+      });
+      const key = termKey(row.term);
+      // 错误示范：返回父词或已有一级词时重新入队，会重复收费甚至形成循环。
+      const existing = seen.get(key) ?? second.get(key);
+      if (existing) existing.appearances.push(...row.appearances);
+      else if (!cfg.trends_roots.roots.some((root) => termKey(root) === key))
+        second.set(key, row);
     }
   }
   const ranked = rankSecondLevel([...second.values()]);

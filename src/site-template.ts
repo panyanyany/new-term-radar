@@ -48,6 +48,12 @@ thead th { font-weight:550; padding-top:8px; padding-bottom:8px; }
 .trend-col { width:248px; }
 .ordinal { color:var(--muted); font:11px ui-monospace,monospace; }
 .term-name { font-size:14px; font-weight:600; }
+.term-copy { display:inline-flex; vertical-align:middle; align-items:center; justify-content:center; position:relative; width:28px; height:28px; margin-left:4px; padding:5px; border:0; background:transparent; color:var(--muted); cursor:pointer; border-radius:4px; }
+.term-copy:hover,.term-copy:focus-visible { color:var(--accent); background:#e7ece4; }
+.term-copy:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.term-copy svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.7; }
+.term-copy[data-feedback]::after { content:attr(data-feedback); position:absolute; bottom:100%; left:0; padding:3px 6px; background:var(--ink); color:var(--paper); font-size:11px; font-weight:400; white-space:nowrap; border-radius:3px; pointer-events:none; }
+.copy-status { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .explanation { font-size:13px; color:#435147; line-height:1.65; }
 tbody tr:hover { background:#f0f1e9; }
 .trend-cell { padding-top:3px; padding-bottom:3px; }
@@ -60,6 +66,12 @@ tbody tr:hover { background:#f0f1e9; }
 .term-line { stroke:var(--term); }
 .reference-name { display:block; color:var(--muted); font-size:10px; line-height:1.2; padding-left:26px; }
 .no-curve { color:var(--muted); font-size:12px; }
+.deferred-trends { margin:10px 0 14px; padding:10px 12px; border:1px solid var(--line); border-radius:4px; }
+.deferred-trends h3 { margin:0 0 2px; font-size:13px; font-weight:600; }
+.trend-groups { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:6px 16px; margin-top:8px; }
+.trend-group { display:flex; gap:8px; padding:6px 0; font-size:12px; line-height:1.5; text-decoration:none; overflow-wrap:anywhere; }
+.trend-group:hover { color:var(--accent); text-decoration:underline; }
+.group-number { flex-shrink:0; color:var(--accent); font:11px/1.65 ui-monospace,monospace; }
 .empty { color:var(--muted); padding:12px 0; font-size:13px; }
 footer { border-top:1px solid var(--ink); margin-top:24px; padding-top:12px; display:flex; justify-content:space-between; gap:16px; color:var(--muted); font-size:11px; }
 [hidden] { display:none!important; }
@@ -87,7 +99,7 @@ search.addEventListener('input', () => {
   for (const section of document.querySelectorAll('section')) {
     let visible = 0;
     for (const row of section.querySelectorAll('tbody tr')) {
-      const text = row.querySelector('.term-name').textContent + ' ' + row.querySelector('.explanation').textContent;
+      const text = row.querySelector('.term-text').textContent + ' ' + row.querySelector('.explanation').textContent;
       row.hidden = !text.normalize('NFKC').toLocaleLowerCase().includes(query);
       if (!row.hidden) visible++;
     }
@@ -97,4 +109,18 @@ search.addEventListener('input', () => {
     empty.textContent = query ? '没有匹配的词语，请换个关键词。' : '本期暂无符合条件的词语。';
   }
 });
+
+// 使用标准剪贴板 API；失败明确反馈，不影响词语路径和搜索。
+const copyTimers = new WeakMap();
+for (const button of document.querySelectorAll('[data-copy-term]')) {
+  button.addEventListener('click', async () => {
+    let feedback;
+    try { await navigator.clipboard.writeText(button.dataset.copyTerm); feedback = '已复制'; }
+    catch { feedback = '复制失败'; }
+    button.dataset.feedback = feedback;
+    document.getElementById('copy-status').textContent = feedback + '：' + button.dataset.copyTerm;
+    clearTimeout(copyTimers.get(button));
+    copyTimers.set(button, setTimeout(() => { delete button.dataset.feedback; }, 1800));
+  });
+}
 `;

@@ -75,8 +75,14 @@ pnpm check  # 格式、业务与测试类型检查、Vitest、构建
 
 关键词取证默认 Scrappa Google Search，复用 `SCRAPPA_API_KEY` / 既有本机凭据。`KEYWORD_EVIDENCE_PROVIDER=x pnpm radar keywords "产品名"` 显式改用 X，`X_SEARCH_PROVIDER=aisa` 可进一步选择旧 AIsa 搜索；默认 Google 模式不受 `X_SEARCH_PROVIDER` 影响。`SCRAPPA_API_URL` 仅覆盖 REST API 域名，MCP 地址仍由 `SCRAPPA_MCP_URL` 控制。
 
-`trends_roots: { roots: ["game"], windows: [1, 3, 7], category_code: 8 }` 启用根词 Rising 发现；需要现有 AIsa 与 Scrappa 凭据。`--skip trends` 禁用。三天采用 UTC 日期区间，接口日期精度不保证滚动 72 小时。
+`trends_roots: { roots: ["game"], windows: [1, 3, 7], category_code: 8 }` 启用根词 Rising 发现；默认 Rising 需要 DataForSEO 授权，曲线需要 Scrappa 凭据，模型仍需 AIsa；配置和备选见 [dataforseo.md](dataforseo.md)。`--skip trends` 禁用。三天采用 UTC 日期区间，接口日期精度不保证滚动 72 小时。
 
 根词参考词可通过 `trends_roots.benchmark` 独立设置，未设置时兼容 `usecases.benchmark`。根词、窗口、类目与批量数量在配置加载阶段校验。七天筛选与超大曲线有限重查详见 [trends.md](trends.md)。
 
 网页研究失败后的显式补查：`pnpm radar replay-pages --batch <UUID> --config config.json --state state --out state/page-replay.json`。批次位于本地 `state/page-batches`；补查独立输出，不发送通知或回灌日报，详见 `.devguide/pages.md`。
+
+## Codex 的 DataForSEO MCP
+
+本机 Codex 已注册 `dataforseo`，使用远程 Streamable HTTP 地址 `https://mcp.dataforseo.com/mcp`。配置位于用户目录 `~/.codex/config.toml`，不属于项目仓库；项目 Rising 默认使用同账户的官方 HTTP Standard，详见 [dataforseo.md](dataforseo.md)。
+
+本机已完成 DataForSEO 账户 OAuth 授权，并通过 MCP 握手及 `tools/list` 验证，可读取 89 个工具，包括 `kw_data_google_trends_explore`；连接验证不执行收费数据查询。OAuth 凭据由 Codex 保存在用户目录 `~/.codex/.credentials.json`，不写入项目。在无浏览器服务器运行 `codex mcp login dataforseo --no-browser`，打开输出的授权链接，登录后将浏览器最终跳转的完整回调 URL 粘贴回终端；即使回调页面无法加载，也可复制地址。回调 URL 属于临时认证信息，不写入文档、日志或仓库。使用 `codex mcp get dataforseo` 检查配置；授权后在重新加载 MCP 的 Codex 会话中验证工具列表。

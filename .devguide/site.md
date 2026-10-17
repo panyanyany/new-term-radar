@@ -75,3 +75,13 @@ trends.second_level.deferred 通过公开候选白名单展示为独立的“二
 日报表格列顺序：序号 → Google Trends 近七天曲线 → 词语 → 发现时间 → 趋势分类 → AI 分类 → 一句话解释；曲线紧邻词语左侧，新词与旧词保持一致。
 
 排序说明只在报告 second_level.sorting_strategy=rising-v1 时宣称统一 Rising 排序；无标识或未知策略的报告显示“未记录排序策略”，不推断旧报告曾执行新排序。增长值为 null 或旧报告无优先级时显示“未记录”，有效 0 保留 0%。
+
+词语旁的独立复制图标覆盖新词、旧词和超限候选，使用浏览器 Clipboard API 复制原词；成功/失败均显示短暂反馈，并通过 role=status 告知辅助技术。复制与路径按钮独立，搜索只读取 term-text 及解释，不包含反馈文案。
+
+## 超限二级候选的手动趋势链接
+
+“二级候选 · 超限未查询”区域包含紧凑的分组链接板块，仅使用 second_level.deferred，按原顺序去重，每四词加参考词生成 Google Trends 最近七天（date=now 7-d）比较链接；不足四词也成组，不包含已查询的 discovered。参考词优先取本轮 Trends 候选保存的 benchmark，旧报告未记录时沿用 hex picker。生成链接不请求收费接口、不触发后续研究。曲线链接不携带来源类目，避免参考词被分类过滤。
+
+页面通过 meta referrer=no-referrer 设置全局来源策略，所有外部锚点同时设置 rel="noopener noreferrer" 和 referrerpolicy="no-referrer"，新窗口不共享 opener 且不发送来源页面地址。这只隐藏 Referer，不隐藏用户 IP 或目标站已有 Cookie。链接参数用 URLSearchParams 编码、显示文字按既有 HTML 转义。site-path 测试覆盖九词 4/4/1 分组、已查询排除、参考词去重、特殊字符、分类缺省和全外链来源策略。
+
+公开页白名单接受 collection_status 的计数和批次号；仅在上涨词采集不完整时显示短提示，不公开原始请求、错误和费用。

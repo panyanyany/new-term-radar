@@ -4,21 +4,21 @@
 
 Rising 去重 → 保存原始发现时间 → 七天曲线筛选 → 普通 Google 搜索 → AI 线上游戏/在线工具分类 → 解释 → 日报。保持单机直接模块调用，无额外工作流或缓存服务。
 
-`trends_roots` 支持 `roots`、`windows`（1/3/7）、`category_code`（默认 8）和可选 `benchmark`。参考词未单独设置时兼容 `usecases.benchmark`，默认 hex picker。`src/trends-config.ts` 在加载时校验空词、重复根词/窗口、类目和 AIsa 单批最多 20 个请求。`--skip trends` 跳过整个来源。
+`trends_roots` 支持 `roots`、`windows`（1/3/7）、`category_code`（默认 8）、`provider`（默认 dataforseo）、`standard_wait_minutes`（默认 45）和可选 `benchmark`。参考词未单独设置时兼容 `usecases.benchmark`，默认 hex picker。`src/trends-config.ts` 在加载时校验空词、重复根词/窗口、类目、供应商和等待时限。`--skip trends` 跳过整个来源。
 
-`src/trends-roots.ts` 通过 AIsa 转接 DataForSEO Live Explore，先报价再调用。只接受显式 `data.rising`；`check_url` 必须回显同一根词、日期和类目。1/7 天用 past_day/past_7_days；3 天用 UTC 当天减三天至当天的日期区间，只有日期精度，不等同精确滚动 72 小时。Google 类目不能保证结果全部符合目标产品类型，因此仍需搜索后分类。
+`src/trends-roots.ts` 通过 trends-related 默认直连 DataForSEO Standard 批量任务，AIsa Live 作为显式备选保留报价及调用。批量与恢复细节见 [dataforseo.md](dataforseo.md)。只接受显式 `data.rising`；`check_url` 必须回显同一根词、日期和类目。1/7 天用 past_day/past_7_days；3 天用 UTC 当天减三天至当天的日期区间，只有日期精度，不等同精确滚动 72 小时。Google 类目不能保证结果全部符合目标产品类型，因此仍需搜索后分类。
 
 ## 一级与二级词
 
 配置根词查询 Rising 得到一级词。一级词七天曲线在任一同一时间点满足候选值严格大于参考值三倍，且参考值大于零时，以该一级词查询 Rising，得到二级词。只比较原始共同尺度数据，不比较网页绘图的显示缩放；等于三倍、参考值为零或无效点不触发。只有一级词通过七天曲线、搜索取证及 AI 分类流程且未被线下赛事门禁拦截，才允许扩展；分类 uncertain/pending 仍按既有规则放行。二级词仍必须独立通过七天曲线门槛，再搜索取证、AI 分类和赛事拦截。二级词不触发三级扩展。每轮最多研究 10 个去重二级词（SECOND_LEVEL_LIMIT），先汇总所有通过一级门禁及三倍条件的父词返回的二级候选，合并重复入口后统一按 Rising 信号排序，再选前十名研究。排序依次为显式 Breakout、最大有效增长百分比、不同时间窗口数量、不同父词数量，最后按标准化词键稳定排序；同一入口的重复记录不重复加分，缺失/非法增长不猜测为 Breakout。priority 保存排名与信号，代表研究优先级，不代表商业价值。增长缺失、非法或负值使用 max_growth=null，不伪装成 0%；有效零增长仍保留 0%，在同为非 Breakout 时优先于无有效增长。sorting_strategy=rising-v1 明确标记当前排序规则。超限的词保存在 second_level.deferred，写入首次发现时间并在网页独立展示，不请求曲线、搜索、分类，不进入已通过门禁的新旧词表。second_level.discovered 保留选中的十词及路径，便于统计。错误示范：不能一边收集一边取前十，否则后查询父词的高增长词永远无法入选；不能在一级分类前产生二级词。全局排序需要查询全部合格父词的 Rising，因此相关查询费用不受十词上限约束，曲线、搜索和分类最多处理十个二级词。
 
-二级 Rising 查询沿用现有 1/3/7 天窗口配置，并继承一级来源的 category_code（游戏为 8），绝不自动取消类目。返回的原根词、父词和已有一级词不重复研究；多个入口合并 appearances，记录 discovery_level 和 root_path，网页诞生路径展示根词 → 一级词 → 二级词。二级原始发现先保存时间，曲线失败词留在 filtered；expansion 和 windows 留存扩展触发与请求信息。AIsa 请求按单批最多 20 个拆分。
+二级 Rising 查询沿用现有 1/3/7 天窗口配置，并继承一级来源的 category_code（游戏为 8），绝不自动取消类目。返回的原根词、父词和已有一级词不重复研究；多个入口合并 appearances，记录 discovery_level 和 root_path，网页诞生路径展示根词 → 一级词 → 二级词。二级原始发现先保存时间，曲线失败词留在 filtered；expansion 和 windows 留存扩展触发与请求信息。相同类目的合格父词统一提交；Standard 每批最多 100 个任务，AIsa 备选每批最多 20 个。
 
 **类目只用于 Rising 相关查询，不能用于任何级别的曲线接口。** 曲线统一请求 Worldwide、7d、候选词及参考词，不传 category/category_code/cat。错误示范：把一级来源 category_code=8 直接复制到曲线请求，会让参考词 hex picker 被游戏类目过滤为零，破坏倍数与曲线判断。
 
 ## 二级扩展模块与本地快照
 
-`src/trends-roots.ts` 负责 Rising 接口及一级编排；`src/trends-expansion.ts` 直接负责二级触发、类目继承、来源归并、全局排序与前十选择，定义 Appearance/Candidate/Priority/SecondLevelSnapshot。接口函数作为直接函数参数传入，避免两个模块互相导入；不增加服务层或通用策略框架。合并来源使用克隆，一级输出显式接回合并后的来源，不修改调用者数组。
+`src/trends-roots.ts` 负责一级编排，trends-related 负责 Rising 路由与归并，trends-contract 共用请求/解析校验；`src/trends-expansion.ts` 直接负责二级触发、类目继承、来源归并、全局排序与前十选择，定义 Appearance/Candidate/Priority/SecondLevelSnapshot。接口函数作为直接函数参数传入，避免两个模块互相导入；不增加服务层或通用策略框架。合并来源使用克隆，一级输出显式接回合并后的来源，不修改调用者数组。
 
 CLI 在二级排序完成、后续曲线和 AI 请求之前调用 `saveSecondLevelBatch`，通过现有 saveSnap 的 gzip + 临时文件 rename 原子保存到 `state/trends-batches/<UUID>.json.gz`。文件含 created_at、batch_id、sorting_strategy、limit、discovered、deferred、triggers 和 windows，最终报告 second_level 关联 batch_id。只归档本轮证据，不扫描历史、不自动恢复或发起付费请求。测试直接读取归档验证曲线异常后仍能离线统计；归档失败直接抛出，保留堆栈，不继续付费研究。
 
@@ -112,3 +112,5 @@ Trends 的零表示低于显示精度，不代表无人搜索。错误示范：�
 曲线按规范化词、参考词、Worldwide/7d、查询小时和 MCP 地址复用本轮已完成结果；原比较批次、共同尺度、checked_at 保留，命中标记 cache_hit。后续批次只查询未命中词，模块 cost_micros 不重复增加；pending 和 dominates_comparison 不缓存，避免把暂时失败或特定比较批次的压制结论当成永久事实。复用不改变最终同词拦截优先规则。
 
 `report-terms.collectTerms` 只收集本轮原始候选，不根据 candidate_screening 的存在切换语义；`report-screening` 返回明确的 ScreenedTerms，CLI 显式将 screened.rows 传给 createBrief。报告层只负责这些输入的时间、解释与展示，不反向收集其他来源。`tests/trends-maintenance.test.ts` 只替换外部接口，串联根词、网页、其他线索、关键词研究至最终日报和网页，验证未通过曲线及赛事词不会进入解释或展示；`research-cache.test.ts` 验证请求/费用去重、失败再查和运行隔离。
+
+collection_status 由共享 trends-status.ts 依据一级和二级全部窗口汇总，兼容 AIsa 同步成功窗口与 Standard 异步状态；候选为空不能推断本轮采集成功。

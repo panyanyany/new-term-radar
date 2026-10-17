@@ -27,6 +27,7 @@ new-term-radar/
 │   ├── scheduling.md            本机 cron、最小环境与 Actions
 │   ├── notify.md                Telegram/飞书摘要与邮件通道
 │   ├── twitter-aio.md           X 默认数据源、凭据、备选路由与过滤契约
+│   ├── dataforseo.md            Standard 批量任务、OAuth、费用及显式恢复
 │   ├── trends.md                根词发现、曲线有限重查、分类、缓存及诊断
 │   ├── scrappa.md               MCP 接入、分页、Trends 与 rising 边界
 │   ├── costs.md                 数据接口价格、额度与成本估算
@@ -45,7 +46,7 @@ new-term-radar/
 │   ├── radar.en.gif             英文流程动画
 │   └── radar.zh.gif             中文流程动画
 ├── src/
-│   ├── site.ts                  公开字段校验、HTML 转义与原子发布
+│   ├── site.ts                  公开字段校验、HTML 转义、超限候选分组趋势链接、外链来源策略与原子发布
 │   ├── site-tooltip.ts          Tippy/Popper 本地发行文件内联、诞生路径浮窗与键盘交互
 │   ├── site-template.ts         紧凑表格样式及浏览器搜索
 │   ├── site-chart.ts            七天趋势双线 SVG，蓝参考词、红当前词
@@ -53,7 +54,7 @@ new-term-radar/
 │   ├── defaults.json            各模块默认配置
 │   ├── messages.json            中英文报告文案
 │   ├── prompts.json             模型提示词、停用词和邮件内联样式
-│   ├── cli.ts                   daily/sources/keywords/leads/costs/replay-pages/mcp 编排
+│   ├── cli.ts                   daily/sources/keywords/leads/costs/replay-pages/resume-trends/mcp 编排
 │   ├── mcp-server.ts            recent_leads/keyword_table/run_radar 工具
 │   ├── usage.ts                 SQLite 请求明细、运行/模块范围、统计及费用分布表
 │   ├── model-costs.ts           DeepSeek 用户单价/OpenRouter 快照、token 计价及独立调用范围
@@ -74,10 +75,18 @@ new-term-radar/
 │   ├── gsc.ts                   Search Console 授权刷新与新展现查询
 │   ├── judge.ts                 模型名称评分及输出校验
 │   ├── terms.ts                 名称提取、词项、按独立来源统计激增
-│   ├── trends-roots.ts          Rising 接口、一级门禁及二级扩展直接编排
+│   ├── trends-roots.ts          一级门禁及二级扩展直接编排
+│   ├── trends-status.ts       Rising 采集完整性计数、公开状态白名单与提示
+│   ├── trends-related.ts        Rising 数据源选择、Standard 结果归并与恢复
+│   ├── trends-contract.ts       共用请求参数、显式 Rising 与回显范围校验
+│   ├── trends-aisa.ts           AIsa Live 备选、报价及单批二十任务
+│   ├── dataforseo-api.ts        官方 HTTP 请求、费用跟踪及账户错误
+│   ├── dataforseo-auth.ts       API 凭据、复用本机 Codex OAuth 及刷新
+│   ├── dataforseo-standard.ts   百任务拆批、统一等待、五并发取回及只 GET 恢复
+│   ├── dataforseo-store.ts      SQLite 任务参数、提交状态及原始响应归档
 │   ├── trends-expansion.ts      二级触发、类目继承、来源克隆归并、全局排序前十及快照契约
 │   ├── trends-batches.ts        二级研究前 gzip 原子归档，保留排名及来源，不自动恢复
-│   ├── trends-config.ts         根词配置默认值、Zod 校验与请求数量限制
+│   ├── trends-config.ts         根词/供应商/等待默认值与 Zod 校验
 │   ├── trends-filter.ts         七天小时曲线、低基线上涨与超大曲线有限重查
 │   ├── candidate-research.ts    所有来源共用普通/精确搜索、证据上下文与分类
 │   ├── page-research.ts         网页词去重、曲线硬门槛、来源页证据与体育赛事拦截
@@ -106,6 +115,8 @@ new-term-radar/
 │   ├── ai-listening/SKILL.md     新名称线索收集
 │   └── seo-new-keywords-research/SKILL.md  指定名称关键词研究
 ├── tests/
+│   ├── dataforseo-api.test.ts   独立凭据、OAuth 刷新、实际费用与排队状态
+│   ├── dataforseo-standard.test.ts  百任务拆批、乱序关联、失败隔离与只 GET 恢复
 │   ├── fixtures/perceptle-hourly.json 实测七天小时点，低基线噪声回归样本
 │   ├── fixtures/noillirk-hourly.json 已有热度后持续爆发的 noillirk / hex picker 实测双线
 │   ├── fixtures/perceptle-report-hourly.json 最近实跑 perceptle 与 hex picker 七天双线样本及采样元数据
@@ -121,7 +132,7 @@ new-term-radar/
 │   ├── research-cache.test.ts   搜索跨模块复用、费用去重、失败再查和运行隔离
 │   ├── page-research.test.ts    网页曲线不达标/待验证拦截、同词去重、来源证据、赛事拦截与无新增零请求
 │   ├── candidate-kind.test.ts     分类 term 匹配、八词七答、缺项/重复隔离与证据引用
-│   ├── trends-config.test.ts      配置默认值、重复项与请求上限
+│   ├── trends-config.test.ts      配置默认值、重复项、供应商与等待时限
 │   ├── trends-cache.test.ts       解释状态、证据/模型/版本失效与旧来源隔离
 │   ├── trends-maintenance.test.ts 外部接口模拟下的完整内部流程及首次发现
 │   ├── brief-report.test.ts     24 小时边界、重跑去重、费用隔离与解释降级
@@ -132,6 +143,7 @@ new-term-radar/
 │   ├── scrappa.test.ts          真样本契约、SDK mock、分页及错误保护
 │   ├── usage.test.ts            持久化记账、失败/重试、并发隔离、费用汇总与 CLI
 │   ├── model-costs.test.ts      模型费用、缓存输入、并行隔离、缺失用量和摘要
+│   ├── trends-status.test.ts  采集状态汇总、三段报告及畸形上游边界
 │   ├── pipeline.test.ts         模拟付费接口的完整关键词管线和状态保护
 │   ├── mcp.test.ts              官方 SDK 与真实 stdio 子进程集成
 │   └── fixtures/

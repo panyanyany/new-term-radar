@@ -12,6 +12,7 @@
 - `sources.ts`、`breakout.ts`、`sitemaps.ts`：采集、差分和快照；`store.ts`：SQLite 线索及复盘结果。
 - `usecases.ts`：证据、模型提词/筛选、相关查询、搜索量、Trends 与决策。
 - `report.ts`：线索合并、名称评分和 Markdown 报告。
+- `trends-related.ts`、`dataforseo-standard.ts`：Standard Rising 批量提交、统一等待和只 GET 恢复，SQLite 任务归档；trends-aisa 保留显式 Live 备选。
 - `x.ts`：按用途显式切换数据源。Twitter AIO 为默认，Scrappa 账号采集、AIsa 搜索保留备选；失败不自动跨供应商请求。
 - `scripts/notify-report.ts`：独立的 Telegram / 飞书报告投递。
 

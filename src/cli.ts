@@ -27,6 +27,7 @@ import {
 } from "./core.js";
 import { xNew, hfNew } from "./sources.js";
 import { saveSecondLevelBatch } from "./trends-batches.js";
+import { resumeRelated } from "./trends-related.js";
 import { discoverRoots } from "./trends-roots.js";
 import { breakouts } from "./breakout.js";
 import { diff } from "./sitemaps.js";
@@ -120,7 +121,7 @@ export async function main(
     .name("new-term-radar")
     .argument(
       "<command>",
-      "daily | sources | keywords | leads | costs | replay-pages",
+      "daily | sources | keywords | leads | costs | replay-pages | resume-trends",
     )
     .argument("[names...]")
     .option(
@@ -129,7 +130,7 @@ export async function main(
       (v: string, a: string[]) => [...a, v],
       [],
     )
-    .option("--batch <id>", "local page batch ID for replay-pages")
+    .option("--batch <id>", "batch ID for replay-pages or resume-trends")
     .option("--days <days>", "lead window", "7")
     .option(
       "--by <group>",
@@ -141,6 +142,10 @@ export async function main(
     .option("--state <dir>", "persistent state", "state")
     .option("--out <file>")
     .option("--skip <signals>", "comma separated signals", "")
+    .option(
+      "--trends-provider <provider>",
+      "Rising provider: dataforseo | aisa",
+    )
     .option("--new-sites")
     .option("--mail")
     .exitOverride();
@@ -157,6 +162,7 @@ export async function main(
       "leads",
       "costs",
       "replay-pages",
+      "resume-trends",
     ].includes(command)
   )
     throw new Error("unknown command");
@@ -199,10 +205,30 @@ export async function main(
     throw new Error("keywords: give at least one name");
   if (command === "replay-pages" && !args.batch)
     throw new Error("replay-pages: --batch is required");
+  if (command === "resume-trends" && !args.batch)
+    throw new Error("resume-trends: --batch is required");
   const cfg = loadConfig(args.config);
+  if (args.trendsProvider) {
+    if (!["dataforseo", "aisa"].includes(args.trendsProvider))
+      throw new Error("--trends-provider: dataforseo | aisa");
+    cfg.trends_roots.provider = args.trendsProvider;
+  }
   if (skip.has("judge")) cfg.judge.model = "";
   mkdirSync(args.state, { recursive: true });
   return withUsageRun(args.state, command, async () => {
+    if (command === "resume-trends") {
+      const result = await withUsageModule("trends", () =>
+        resumeRelated(args.state, args.batch, cfg),
+      );
+      const text = JSON.stringify(
+        { ...result, usage: currentUsage() },
+        null,
+        2,
+      );
+      if (args.out) writeFileSync(args.out, text);
+      output(text);
+      return 0;
+    }
     if (command === "replay-pages") {
       const pages = loadPageBatch(args.state, args.batch);
       const researched = await withUsageModule("sitemaps", () =>
@@ -250,6 +276,7 @@ export async function main(
               }
             },
             (snapshot) => saveSecondLevelBatch(args.state, snapshot),
+            args.state,
           ),
         skip.has("trends"),
         "trends",

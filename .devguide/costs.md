@@ -88,7 +88,7 @@ X 对照测试原始文件 `/tmp/radar-x-pagination-results.json` 含 AIsa 与 A
 
 AIsa → DataForSEO Google Trends Explore Live 用 `game` 的全球 1d/7d Related queries 对照，实际扣费每次 $0.011，共 $0.022；只请求 `google_trends_queries_list` 不会自动降低到搜索目录展示价。Scrappa 相同两窗口合计 $0.000606，但响应不具备 Rising 契约，不可按低价直接替代。单根词每天两窗口、30 天：AIsa 约 $0.66；GoAnyAPI 小包标价约 $0.36；SerpApi 共需 60 次，处于每月 250 次免费额度内，均不含后续 Google 搜索与模型解释。GoAnyAPI、SerpApi 的比较为文档核查，非本机真实账单。
 
-根词来源 game 的 1/3/7 天共三次 Live Explore，按当前实测单价 $0.011/请求，基础费用约 $0.033/轮；另计去重候选逐词 Google 搜索（$0.000303/次）与解释模型 token 费用，均通过现有请求账本按模块统计。
+AIsa 备选中，根词的 1/3/7 天共三次 Live Explore，按实测单价 $0.011/请求，基础费用约 $0.033/轮（默认 Standard 为 $0.0081/轮）；另计去重候选逐词 Google 搜索（$0.000303/次）与解释模型 token 费用，均通过现有请求账本按模块统计。
 
 根词 Rising 的七天曲线筛选先于 Google 搜索：参考词加最多四个候选，一批一次 Scrappa 请求，按现有 303 micro-USD/次记账；只有通过者产生后续 Google 搜索和解释费用。失败或解析不通过的请求费用同样保留，不能因候选被过滤而丢失。
 
@@ -99,3 +99,7 @@ AIsa → DataForSEO Google Trends Explore Live 用 `game` 的全球 1d/7d Relate
 ## 完整费用与模块小计
 
 完整费用以当前运行的 SQLite 请求账本为准，包含搜索、分类及解释。`trends.cost_micros` 仅表示 Rising 和曲线请求的小计，并通过 `cost_complete=false` 明确标记；不得将它单独解释为整个 Trends 流程的总额。`costSummary` 优先使用账本，有未计价请求或无账本且模块明确不完整时返回 `cost_complete=false`；Markdown 显示“已知费用小计”，不宣称完整总额。其他既有模块的费用字段及接口保持兼容。
+
+## DataForSEO Standard Rising
+
+默认 Rising 直连 Standard，每任务官方价 $0.0027，AIsa Live 备选实测 $0.011；曲线与搜索仍用较便宜的 Scrappa。根词三窗口约 $0.0081/轮；二级扩展另按合格父词 × 窗口付费，十词研究上限不限制这部分查询数。账本按 HTTP 顶层 response.cost 实际记费，提交、ready、get 分开记录；排队未完成不算故障，GET 内原任务 cost 不重复计费。任务表保存提交费用，恢复只计本次 HTTP 费用。实测一个 Standard 任务提交 $0.0027、取回 $0。批量、OAuth、本地归档及显式恢复见 [dataforseo.md](dataforseo.md)。
